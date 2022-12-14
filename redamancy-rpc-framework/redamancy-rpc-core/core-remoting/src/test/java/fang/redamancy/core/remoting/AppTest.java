@@ -1,5 +1,7 @@
 package fang.redamancy.core.remoting;
 
+import fang.redamancy.core.common.asyn.ApplicationContextPro;
+import fang.redamancy.core.protocol.serialize.Serializer;
 import fang.redamancy.core.remoting.transport.netty.client.NettyRpcClient;
 import fang.redamancy.core.remoting.transport.netty.server.NettyRpcServer;
 import org.junit.Test;
@@ -32,6 +34,9 @@ public class AppTest {
     @Test
     public void ClientTest(){
         nettyRpcClient.sendRpcRequest(new NettyRpcClient());
+//        Serializer serializer = ApplicationContextPro.getBean(Serializer.class);
+//
+//        serializer.serialize("nu");
     }
 
 }

@@ -1,4 +1,4 @@
-package util;
+package fang.redamancy.core.common.util;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;

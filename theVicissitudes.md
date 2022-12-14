@@ -4,7 +4,7 @@
 
 ### 11.10 技术选型以及项目的结构初步搭建
 
-![image-20221111102624145](https://cdn.jsdelivr.net/gh/redamancy-w/blogImages@main/imgimage-20221111102624145.png)
+![image-20221111102624145](https://cdn.jsdelivr.net/gh/redamancy-w/blogImages@main/imgimage-20221111102624145.png)V
 
 ### 11.11 
 

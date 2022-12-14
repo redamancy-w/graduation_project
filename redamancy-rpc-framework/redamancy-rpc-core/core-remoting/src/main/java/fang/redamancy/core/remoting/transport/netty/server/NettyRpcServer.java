@@ -1,24 +1,23 @@
 package fang.redamancy.core.remoting.transport.netty.server;
 
+import fang.redamancy.core.protocol.regulation.RpcDecoder;
+import fang.redamancy.core.protocol.regulation.RpcEncoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import io.netty.util.concurrent.DefaultThreadFactory;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import util.RuntimeUtil;
-import util.ThreadPollFactoryUtil;
+import fang.redamancy.core.common.util.RuntimeUtil;
+import fang.redamancy.core.common.util.ThreadPollFactoryUtil;
 
 import java.net.InetAddress;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -60,13 +59,8 @@ public class NettyRpcServer {
                             // 30 秒之内没有收到客户端请求的话就关闭连接
                             ChannelPipeline p = ch.pipeline();
                             p.addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS));
-                            p.addLast(new ChannelInboundHandlerAdapter(){
-                                @Override
-                                public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                                    ByteBuf byteBuf = (ByteBuf) msg;
-                                    System.out.println("收到服务端" + ctx.channel().remoteAddress() + "的消息：" + byteBuf.toString(CharsetUtil.UTF_8));
-                                }
-                            });
+                            p.addLast(new RpcEncoder());
+                            p.addLast(new RpcDecoder());
                         }
                     });
 

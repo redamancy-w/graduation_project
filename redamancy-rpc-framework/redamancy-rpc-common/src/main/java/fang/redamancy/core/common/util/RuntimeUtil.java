@@ -1,4 +1,4 @@
-package util;
+package fang.redamancy.core.common.util;
 
 /**
  * @Author redamancy
