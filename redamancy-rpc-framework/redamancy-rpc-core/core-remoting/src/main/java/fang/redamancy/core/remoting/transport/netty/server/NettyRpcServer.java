@@ -1,21 +1,19 @@
 package fang.redamancy.core.remoting.transport.netty.server;
 
+import fang.redamancy.core.common.util.RuntimeUtil;
+import fang.redamancy.core.common.util.ThreadPollFactoryUtil;
 import fang.redamancy.core.protocol.regulation.RpcDecoder;
 import fang.redamancy.core.protocol.regulation.RpcEncoder;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import fang.redamancy.core.common.util.RuntimeUtil;
-import fang.redamancy.core.common.util.ThreadPollFactoryUtil;
 
 import java.net.InetAddress;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +37,7 @@ public class NettyRpcServer {
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         DefaultEventExecutorGroup serviceHandlerGroup = new DefaultEventExecutorGroup(
-                RuntimeUtil.cpus() * 2, ThreadPollFactoryUtil.createThreadFactory(SERVICE_HANDLER_GROUP,false)
+                RuntimeUtil.cpus() * 2, ThreadPollFactoryUtil.createThreadFactory(SERVICE_HANDLER_GROUP, false)
         );
         try {
             ServerBootstrap b = new ServerBootstrap();
@@ -53,7 +51,7 @@ public class NettyRpcServer {
                     .option(ChannelOption.SO_BACKLOG, 128)
                     // 当客户端第一次进行请求的时候才会进行初始化
                     .childHandler(new ChannelInitializer<SocketChannel>() {
-                        
+
                         @Override
                         protected void initChannel(SocketChannel ch) {
                             // 30 秒之内没有收到客户端请求的话就关闭连接

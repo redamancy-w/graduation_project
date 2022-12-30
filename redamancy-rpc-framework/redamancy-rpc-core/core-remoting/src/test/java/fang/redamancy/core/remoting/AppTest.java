@@ -27,16 +27,20 @@ public class AppTest {
     private NettyRpcServer nettyRpcServer;
 
     @Test
-    public void ServerTest(){
+    public void ServerTest() {
         nettyRpcServer.start();
     }
 
+
     @Test
-    public void ClientTest(){
-        nettyRpcClient.sendRpcRequest(new NettyRpcClient());
-//        Serializer serializer = ApplicationContextPro.getBean(Serializer.class);
-//
-//        serializer.serialize("nu");
+    public void ClientTest() {
+
+        Thread thread = new Thread(() -> {
+            Serializer serializer = (Serializer) ApplicationContextPro.getBean("kyro");
+            serializer.serialize("test");
+        });
+
+        thread.start();
     }
 
 }

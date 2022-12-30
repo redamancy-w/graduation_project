@@ -12,11 +12,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * netty编码器
+ *
  * @Author redamancy
  * @Date 2022/12/4 17:15
  * @Version 1.0
@@ -33,7 +33,7 @@ public class RpcEncoder extends MessageToByteEncoder<RpcMessage> {
     protected void encode(ChannelHandlerContext channelHandlerContext, RpcMessage rpcMessage, ByteBuf out) {
         try {
             out.writeBytes(RpcConstants.MAGIC_NUMBER);
-            ByteBuf mkOut =  out.markWriterIndex();
+            ByteBuf mkOut = out.markWriterIndex();
             //预留4的长度后续填入 full length
             out.writerIndex(out.writerIndex() + 4);
 
@@ -43,14 +43,14 @@ public class RpcEncoder extends MessageToByteEncoder<RpcMessage> {
             out.writeByte(CompressTypeEnum.GZIP.getCode());
             out.writeInt(ATOMIC_INTEGER.getAndIncrement());
 
-            buildBody(rpcMessage,out,mkOut);
+            buildBody(rpcMessage, out, mkOut);
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             log.error("Encode error!", e);
         }
     }
 
-    private void buildBody(RpcMessage rpcMessage,ByteBuf out,ByteBuf mkOut){
+    private void buildBody(RpcMessage rpcMessage, ByteBuf out, ByteBuf mkOut) {
 
         byte[] bodyBytes = null;
         byte messageType = rpcMessage.getMessageType();
@@ -69,8 +69,8 @@ public class RpcEncoder extends MessageToByteEncoder<RpcMessage> {
 
             //压缩内容
             String compressName = CompressTypeEnum.getName(rpcMessage.getCompress());
-            log.info("compress name: [{}]",compressName);
-            Compress compress =  ApplicationContextPro.getBean(compressName,Compress.class);
+            log.info("compress name: [{}]", compressName);
+            Compress compress = ApplicationContextPro.getBean(compressName, Compress.class);
 
             bodyBytes = compress.compress(bodyBytes);
             fullLength += bodyBytes.length;
