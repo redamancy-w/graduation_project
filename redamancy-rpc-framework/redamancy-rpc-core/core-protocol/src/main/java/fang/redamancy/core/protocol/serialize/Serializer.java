@@ -1,11 +1,15 @@
 package fang.redamancy.core.protocol.serialize;
 
+import fang.redamancy.core.common.extension.SPI;
+
 /**
  * 序列化接口，所有序列化类都要实现这个接口
+ *
  * @Author redamancy
  * @Date 2022/11/11 10:36
  * @Version 1.0
  */
+@SPI("kyro")
 public interface Serializer {
     /**
      * 序列化

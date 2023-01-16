@@ -1,0 +1,5 @@
+extensionClasses:
+  fang.redamancy.core.protocol.serialize.Serializer:
+    kryo: fang.redamancy.core.protocol.serialize.kyro.KyroSerializer
+  fang.redamancy.core.protocol.compress.Compress:
+    gzip: fang.redamancy.core.protocol.compress.gzip.GzipCompress

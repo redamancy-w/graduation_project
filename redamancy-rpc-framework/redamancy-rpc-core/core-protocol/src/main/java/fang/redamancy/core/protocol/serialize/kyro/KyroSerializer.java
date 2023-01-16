@@ -5,7 +5,6 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import fang.redamancy.core.common.exception.SerializeException;
 import fang.redamancy.core.protocol.serialize.Serializer;
-import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -15,7 +14,6 @@ import java.io.ByteArrayOutputStream;
  * @Date 2022/11/11 10:47
  * @Version 1.0
  */
-@Component(value = "kyro")
 public class KyroSerializer implements Serializer {
 
 
@@ -35,7 +33,6 @@ public class KyroSerializer implements Serializer {
 
     @Override
     public byte[] serialize(Object obj) {
-
 
         Kryo kryo = KyroSerializerPool.fetch();
 

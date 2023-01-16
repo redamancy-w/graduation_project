@@ -22,5 +22,6 @@ ____
 >
 > 序列化框架: kryo
 >
-> 注册中心: zookeeper
-
+> 注册中心: zookeeper、nacos、
+>
+> SPI:dubbo、spring

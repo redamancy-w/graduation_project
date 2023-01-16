@@ -1,11 +1,11 @@
 package fang.redamancy.core.protocol.regulation;
 
-import fang.redamancy.core.common.asyn.ApplicationContextPro;
 import fang.redamancy.core.common.constant.RpcConstants;
 import fang.redamancy.core.common.enums.CompressTypeEnum;
 import fang.redamancy.core.common.enums.SerializationTypeEnum;
+import fang.redamancy.core.common.extension.ExtensionLoader;
 import fang.redamancy.core.common.model.RpcMessage;
-import fang.redamancy.core.protocol.comprcess.Compress;
+import fang.redamancy.core.protocol.compress.Compress;
 import fang.redamancy.core.protocol.serialize.Serializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -63,14 +63,14 @@ public class RpcEncoder extends MessageToByteEncoder<RpcMessage> {
             String codecName = SerializationTypeEnum.getName(rpcMessage.getCodec());
             log.info("codec name: [{}] ", codecName);
 
-            Serializer serializer = ApplicationContextPro.getBean(codecName, Serializer.class);
+            Serializer serializer = ExtensionLoader.getExtension(Serializer.class, codecName);
 
             bodyBytes = serializer.serialize(rpcMessage.getData());
 
             //压缩内容
             String compressName = CompressTypeEnum.getName(rpcMessage.getCompress());
             log.info("compress name: [{}]", compressName);
-            Compress compress = ApplicationContextPro.getBean(compressName, Compress.class);
+            Compress compress = ExtensionLoader.getExtension(Compress.class, compressName);
 
             bodyBytes = compress.compress(bodyBytes);
             fullLength += bodyBytes.length;

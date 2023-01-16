@@ -1,13 +1,13 @@
 package fang.redamancy.core.protocol.regulation;
 
-import fang.redamancy.core.common.asyn.ApplicationContextPro;
 import fang.redamancy.core.common.constant.RpcConstants;
 import fang.redamancy.core.common.enums.CompressTypeEnum;
 import fang.redamancy.core.common.enums.SerializationTypeEnum;
+import fang.redamancy.core.common.extension.ExtensionLoader;
 import fang.redamancy.core.common.model.RpcMessage;
 import fang.redamancy.core.common.model.RpcRequest;
 import fang.redamancy.core.common.model.RpcResponse;
-import fang.redamancy.core.protocol.comprcess.Compress;
+import fang.redamancy.core.protocol.compress.Compress;
 import fang.redamancy.core.protocol.serialize.Serializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -34,7 +34,6 @@ import java.util.Arrays;
  * * 4B  magic code（魔法数) 4B full length（消息长度）    1B messageType（消息类型）
  * * 1B codec（序列化类型）   1B compress（压缩类型）       4B  requestId（请求的Id）
  * * body（object类型数据）
- *
  * @see <a href="https://zhuanlan.zhihu.com/p/95621344">LengthFieldBasedFrameDecoder解码器</a>
  */
 @Slf4j
@@ -43,6 +42,16 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
     public RpcDecoder(int maxFrameLength, int lengthFieldOffset, int lengthFieldLength,
                       int lengthAdjustment, int initialBytesToStrip) {
         super(maxFrameLength, lengthFieldOffset, lengthFieldLength, lengthAdjustment, initialBytesToStrip);
+    }
+
+    /**
+     * lengthFieldOffset: magic code 的长度是4
+     * lengthFieldLength: full length 是4，所以值是4
+     * lengthAdjustment: fulllength 是4，macgic code是4，full length 是数据全长，所以，还需要读 full lenfth 的值 - （full length + macgic code），所以是-8
+     * initialBytesToStrip: 因为是手动检测的，所以不需要剥离
+     */
+    public RpcDecoder() {
+        this(RpcConstants.MAX_FRAME_LENGTH, 4, 4, -8, 0);
     }
 
     @Override
@@ -64,17 +73,6 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
 
         return decoded;
     }
-
-    /**
-     * lengthFieldOffset: magic code 的长度是4
-     * lengthFieldLength: full length 是4，所以值是4
-     * lengthAdjustment: fulllength 是4，macgic code是4，full length 是数据全长，所以，还需要读 full lenfth 的值 - （full length + macgic code），所以是-8
-     * initialBytesToStrip: 因为是手动检测的，所以不需要剥离
-     */
-    public RpcDecoder() {
-        this(RpcConstants.MAX_FRAME_LENGTH, 4, 4, -8, 0);
-    }
-
 
     private Object decodeFrame(ByteBuf in) {
         // 字节流是不重置的，所以要按照规定顺序读取
@@ -105,7 +103,7 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
         int bodyLength = fullLength - RpcConstants.HEAD_LENGTH;
 
         if (bodyLength > 0) {
-            handleBody(in,bodyLength,rpcMessage);
+            handleBody(in, bodyLength, rpcMessage);
         }
         return rpcMessage;
     }
@@ -117,20 +115,20 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
      * @param bodyLength body体的长度
      * @param rpcMessage 前置的rpcMessage信息
      */
-    private void handleBody(ByteBuf in, Integer bodyLength, RpcMessage rpcMessage){
+    private void handleBody(ByteBuf in, Integer bodyLength, RpcMessage rpcMessage) {
         byte[] bs = new byte[bodyLength];
         in.readBytes(bs);
 
         //gzip解压对象
         String compressName = CompressTypeEnum.getName(rpcMessage.getCompress());
-        log.info("compress name : [{}]",compressName);
-        Compress compress = ApplicationContextPro.getBean(compressName, Compress.class);
+        log.info("compress name : [{}]", compressName);
+        Compress compress = ExtensionLoader.getExtension(Compress.class, compressName);
         bs = compress.decompress(bs);
 
         //反序列化对象
         String codecName = SerializationTypeEnum.getName(rpcMessage.getCodec());
         log.info("codec name: [{}] ", codecName);
-        Serializer serializer = ApplicationContextPro.getBean(codecName, Serializer.class);
+        Serializer serializer = ExtensionLoader.getExtension(Serializer.class, codecName);
 
         if (rpcMessage.getMessageType() == RpcConstants.REQUEST_TYPE) {
 
@@ -147,6 +145,7 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
 
     /**
      * 检测请求体的魔法数，是否与设定的相同，证明其是一个自定义的协议体
+     *
      * @param in 字节流
      */
     private void checkMagicNumber(ByteBuf in) {

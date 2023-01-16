@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -53,10 +53,17 @@
         <kryo.version>5.2.0</kryo.version>
         <curator-version>4.2.0</curator-version>
         <guava.version>30.1.1-jre</guava.version>
+        <hutool.version>5.8.11</hutool.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.alibaba.otter</groupId>
@@ -223,23 +230,23 @@
                 <version>${spring.beans.version}</version>
             </dependency>
 
-<!--            rpc 部分依赖 netty等-->
+            <!--            rpc 部分依赖 netty等-->
 
-<!--            netty-->
+            <!--            netty-->
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
                 <version>${netty.version}</version>
             </dependency>
 
-<!--         序列化框架 kryo   -->
+            <!--         序列化框架 kryo   -->
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
                 <artifactId>kryo</artifactId>
                 <version>${kryo.version}</version>
             </dependency>
 
-<!--            zookeeper工具-->
+            <!--            zookeeper工具-->
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-framework</artifactId>
@@ -251,7 +258,7 @@
                 <version>${curator-version}</version>
             </dependency>
 
-<!--            guava goog工具类-->
+            <!--            guava goog工具类-->
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
@@ -304,7 +311,7 @@
             <artifactId>hutool-all</artifactId>
             <version>${hutool.version}</version>
         </dependency>
-<!--        谷歌工具包-->
+        <!--        谷歌工具包-->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>

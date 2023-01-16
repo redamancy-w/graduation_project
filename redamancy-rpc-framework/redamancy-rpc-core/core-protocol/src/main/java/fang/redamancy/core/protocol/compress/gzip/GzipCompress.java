@@ -1,7 +1,6 @@
-package fang.redamancy.core.protocol.comprcess.gzip;
+package fang.redamancy.core.protocol.compress.gzip;
 
-import com.esotericsoftware.kryo.util.Null;
-import fang.redamancy.core.protocol.comprcess.Compress;
+import fang.redamancy.core.protocol.compress.Compress;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
@@ -23,7 +22,7 @@ public class GzipCompress implements Compress {
     @Override
     public byte[] compress(byte[] bytes) {
 
-        if (bytes == null || bytes.length == 0){
+        if (bytes == null || bytes.length == 0) {
             throw new NullPointerException("bytes is null");
         }
 
