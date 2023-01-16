@@ -101,12 +101,13 @@ public class ExtensionLoader<T> {
             cachedInstances.putIfAbsent(name, new Holder<>());
             holder = cachedInstances.get(name);
         }
+
         Object instance = holder.get();
 
         if (instance == null) {
 
-            synchronized (this) {
-
+            synchronized (holder) {
+                
                 instance = holder.get();
                 if (instance == null) {
                     instance = createExtension(name);
@@ -176,7 +177,6 @@ public class ExtensionLoader<T> {
 
         Map<String, Class<?>> res = new HashMap<>(8);
         classLoader.loadDirectory(res, type);
-
         return res;
     }
 
