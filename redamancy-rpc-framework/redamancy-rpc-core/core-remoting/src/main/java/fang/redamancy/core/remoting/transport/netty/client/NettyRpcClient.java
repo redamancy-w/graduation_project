@@ -8,16 +8,12 @@ import fang.redamancy.core.protocol.regulation.RpcDecoder;
 import fang.redamancy.core.protocol.regulation.RpcEncoder;
 import fang.redamancy.core.remoting.transport.RpcRequestTransport;
 import fang.redamancy.core.remoting.transport.netty.client.bufferpool.ChannelProvider;
-import fang.redamancy.core.remoting.transport.netty.client.bufferpool.PendingRequest;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.CharsetUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -47,21 +43,20 @@ public class NettyRpcClient implements RpcRequestTransport {
 
     @Override
     public Object sendRpcRequest(Object request) {
-        Channel channel = getChannel(new InetSocketAddress("localhost",9998));
+        Channel channel = getChannel(new InetSocketAddress("localhost", 9998));
 
-        if (channel.isActive()){
+        if (channel.isActive()) {
             RpcMessage rpcMessage = RpcMessage.builder().data("test")
                     .codec(SerializationTypeEnum.KYRO.getCode())
                     .compress(CompressTypeEnum.GZIP.getCode())
                     .messageType(RpcConstants.REQUEST_TYPE).build();
-
             channel.writeAndFlush(rpcMessage);
         }
 
         return null;
     }
 
-    public NettyRpcClient(){
+    public NettyRpcClient() {
         eventLoopGroup = new NioEventLoopGroup();
         bootstrap = new Bootstrap();
         bootstrap.group(eventLoopGroup)

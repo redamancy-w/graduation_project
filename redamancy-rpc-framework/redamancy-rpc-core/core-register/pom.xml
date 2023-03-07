@@ -2,25 +2,21 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>redamancy-rpc-framework</artifactId>
         <groupId>fang.redamancy</groupId>
+        <artifactId>redamancy-rpc-core</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <modelVersion>4.0.0</modelVersion>
+    <artifactId>core-register</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>core-protocol</module>
-        <module>core-register</module>
-        <module>core-remoting</module>
-        <module>core-config</module>
-        <module>core-proxy</module>
-        <module>core-provide</module>
+        <module>register-api</module>
+        <module>register-nacos</module>
+        <module>register-zookeeper</module>
     </modules>
-
-    <artifactId>redamancy-rpc-core</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -29,29 +25,29 @@
     </properties>
 
     <dependencies>
+
+        <!--       NacosClient轻量版-->
         <dependency>
-            <groupId>fang.redamancy</groupId>
-            <artifactId>redamancy-rpc-common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>com.alibaba.nacos</groupId>
+            <artifactId>nacos-client</artifactId>
+            <classifier>pure</classifier>
+            <version>${nacos.clinet.version}</version>
         </dependency>
 
+        <!--        使用轻量版需要添加该依赖-->
         <dependency>
-            <groupId>com.esotericsoftware</groupId>
-            <artifactId>kryo</artifactId>
+            <groupId>com.alibaba.nacos</groupId>
+            <artifactId>nacos-common</artifactId>
+            <version>${nacos.clinet.version}</version>
         </dependency>
 
+        <!--        同上-->
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>fang.redamancy</groupId>
-            <artifactId>core-protocol</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>com.alibaba.nacos</groupId>
+            <artifactId>nacos-api</artifactId>
+            <version>${nacos.clinet.version}</version>
         </dependency>
 
     </dependencies>
-
 
 </project>

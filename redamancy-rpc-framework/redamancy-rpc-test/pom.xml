@@ -2,25 +2,14 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>redamancy-rpc-framework</artifactId>
         <groupId>fang.redamancy</groupId>
+        <artifactId>redamancy-rpc-framework</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <modelVersion>4.0.0</modelVersion>
-    <packaging>pom</packaging>
-    <modules>
-        <module>core-protocol</module>
-        <module>core-register</module>
-        <module>core-remoting</module>
-        <module>core-config</module>
-        <module>core-proxy</module>
-        <module>core-provide</module>
-    </modules>
-
-    <artifactId>redamancy-rpc-core</artifactId>
+    <artifactId>redamancy-rpc-test</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -31,18 +20,14 @@
     <dependencies>
         <dependency>
             <groupId>fang.redamancy</groupId>
-            <artifactId>redamancy-rpc-common</artifactId>
+            <artifactId>redamancy-rpc-core</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
-            <groupId>com.esotericsoftware</groupId>
-            <artifactId>kryo</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
+            <groupId>fang.redamancy</groupId>
+            <artifactId>redamancy-rpc-common</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -51,7 +36,29 @@
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
 
-    </dependencies>
+        <dependency>
+            <groupId>fang.redamancy</groupId>
+            <artifactId>core-remoting</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
 
+        <dependency>
+            <groupId>fang.redamancy</groupId>
+            <artifactId>register-api</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>fang.redamancy</groupId>
+            <artifactId>register-nacos</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>fang.redamancy</groupId>
+            <artifactId>core-register</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
 </project>

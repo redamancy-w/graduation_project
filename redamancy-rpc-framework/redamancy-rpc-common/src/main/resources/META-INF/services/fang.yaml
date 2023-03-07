@@ -3,3 +3,5 @@ extensionClasses:
     kryo: fang.redamancy.core.protocol.serialize.kyro.KyroSerializer
   fang.redamancy.core.protocol.compress.Compress:
     gzip: fang.redamancy.core.protocol.compress.gzip.GzipCompress
+  fang.redamancy.core.register.api.factory.RegisterFactory:
+    nacos: fang.redamancy.core.register.nacos.factory.NacosRegistryFactory

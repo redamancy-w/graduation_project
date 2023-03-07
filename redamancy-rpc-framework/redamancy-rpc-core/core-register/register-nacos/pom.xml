@@ -2,18 +2,14 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>graduationProject</artifactId>
         <groupId>fang.redamancy</groupId>
+        <artifactId>core-register</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <packaging>pom</packaging>
-    <modules>
-        <module>redamancy-rpc-test</module>
-    </modules>
-    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>redamancy-rpc-framework</artifactId>
+    <artifactId>register-nacos</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -23,14 +19,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
+            <groupId>fang.redamancy</groupId>
+            <artifactId>register-api</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
-
 </project>
