@@ -1,4 +1,4 @@
-package fang.redamancy.core.config.support.subclass;
+package fang.redamancy.core.config.support.model;
 
 import fang.redamancy.core.config.support.ServiceConfig;
 import lombok.Getter;

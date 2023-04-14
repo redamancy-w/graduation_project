@@ -6,4 +6,18 @@ package fang.redamancy.core.common.annotation;
  * @Version 1.0
  */
 public @interface FangReference {
+
+    /**
+     * 版本
+     *
+     * @return
+     */
+    String version() default "";
+
+    /**
+     * 组
+     *
+     * @return
+     */
+    String group() default "";
 }

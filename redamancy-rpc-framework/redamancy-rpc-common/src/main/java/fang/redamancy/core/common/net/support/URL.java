@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -34,7 +35,6 @@ public final class URL implements Serializable {
      * 服务名
      */
     private String interfaceName;
-
 
     /**
      * 注册中心
@@ -162,5 +162,20 @@ public final class URL implements Serializable {
             parameters = new HashMap<String, String>(parameters);
         }
         this.parameters = Collections.unmodifiableMap(parameters);
+    }
+
+    public String getUrl() {
+        StringBuilder buf = new StringBuilder();
+        buf.append(getHost()).append(":").append(getPort());
+
+        if (StringUtils.hasText(getUsername())) {
+            buf.append("@").append(username);
+            if (StringUtils.hasText(getPassword())) {
+                buf.append(":")
+                        .append(password);
+            }
+        }
+
+        return String.valueOf(buf);
     }
 }

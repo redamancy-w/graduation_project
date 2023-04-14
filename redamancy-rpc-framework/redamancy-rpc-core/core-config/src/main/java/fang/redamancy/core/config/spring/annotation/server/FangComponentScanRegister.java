@@ -1,6 +1,11 @@
 package fang.redamancy.core.config.spring.annotation.server;
 
+import fang.redamancy.core.config.spring.annotation.processor.ServiceAnnotationScanPostProcessor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -14,7 +19,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import static org.springframework.beans.factory.support.BeanDefinitionBuilder.rootBeanDefinition;
 
 /**
  * @Author redamancy
@@ -36,28 +42,22 @@ public class FangComponentScanRegister implements ImportBeanDefinitionRegistrar,
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 
-
-        AnnotationAttributes rpcScanAnnotationAttributes =
-                AnnotationAttributes.fromMap(importingClassMetadata.getAnnotationAttributes(FangComponentScan.class.getName()));
         Set<String> packagesToScan = getPackagesToScan(importingClassMetadata);
 
-        if (rpcScanAnnotationAttributes != null) {
-            // get the value of the basePackage property
-            packagesToScan =
-                    Arrays.stream(rpcScanAnnotationAttributes.getStringArray(BASE_PACKAGE_ATTRIBUTE_NAME)).collect(Collectors.toSet());
-        }
-
-        // Scan the RpcService annotation
-//        CustomScanner rpcServiceScanner = new CustomScanner(registry, FangService.class);
-
-//        if (resourceLoader != null) {
-//            rpcServiceScanner.setResourceLoader(resourceLoader);
-//        }
-//
-//        packagesToScan.forEach(rpcServiceScanner::scan);
+        registerServiceAnnotationBeanPostProcessor(packagesToScan, registry);
 
     }
 
+
+    private void registerServiceAnnotationBeanPostProcessor(Set<String> packagesToScan, BeanDefinitionRegistry registry) {
+
+        BeanDefinitionBuilder builder = rootBeanDefinition(ServiceAnnotationScanPostProcessor.class);
+        builder.addConstructorArgValue(packagesToScan);
+        builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+        AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
+        BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinition, registry);
+
+    }
 
     /**
      * 返回需要扫描的包的全名，或手动添加的类的全限类名

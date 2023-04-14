@@ -33,11 +33,6 @@ public class NacosRegistry extends FailbackRegister {
     private final NamingService namingService;
 
     /**
-     * 注册中心信息
-     */
-    private URL url;
-
-    /**
      *
      */
     private final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(RuntimeUtil.cpus(),
@@ -53,7 +48,7 @@ public class NacosRegistry extends FailbackRegister {
     }
 
     private String getServiceName(URL url) {
-        return url.getRpcServiceName();
+        return url.getInterfaceName();
     }
 
     protected void doRegister(URL url) {
@@ -87,8 +82,10 @@ public class NacosRegistry extends FailbackRegister {
         String ip = NetUtil.getLocalhost();
         Instance instance = new Instance();
         instance.setIp(ip);
-        instance.setPort(url.getPort());
+        instance.setPort(NetUtil.getAvailablePort());
         instance.setWeight(url.getParameter(NacosSupport.WEIGHT_KEY, NacosSupport.DEFAULT_WEIGHT));
+        instance.setMetadata(url.getParameters());
+
         return instance;
     }
 

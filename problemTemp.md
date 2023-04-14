@@ -41,3 +41,13 @@ endpoint
 ![image-20230228152710051](https://cdn.jsdelivr.net/gh/redamancy-w/blogImages@main/imgimage-20230228152710051.png)
 
 > postProcessBeforeInstantiation调用时机为bean实例化(**Instantiation**)之前 如果返回了bean实例, 则会替代原来正常通过target bean生成的bean的流程. 典型的例如aop返回proxy对象. 此时bean的执行流程将会缩短, 只会执行 
+
+# 5.包扫描问题
+
+尽管添加了过滤条件,但是还是会扫描到Application
+
+![image-20230307221406977](https://cdn.jsdelivr.net/gh/redamancy-w/blogImages@main/imgimage-20230307221406977.png)
+
+# 6.InjectionMetadata
+
+大概知道了所谓的InjectionMetadata究竟是个什么。它存储了某个类，以及这个类里需要被依赖注入的element(自定义)

@@ -58,7 +58,6 @@ public abstract class AbstractServiceProvider implements ServiceProvider {
 
     @Override
     public Object getService(URL url) {
-
         return null;
 
     }

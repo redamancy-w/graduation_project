@@ -25,14 +25,16 @@ public class ExtensionLoader<T> {
      * ExtensionLoader 缓存
      */
     private static final Map<Class<?>, ExtensionLoader<?>> EXTENSION_LOADERS = new ConcurrentHashMap<>();
+
     /**
      * 缓存已有的实例
      */
     private static final ConcurrentMap<Class<?>, Object> EXTENSION_INSTANCES = new ConcurrentHashMap<>();
+
     /**
      * 该ExtensionLoader的类型
      */
-    private final Class<?> type;
+    private final Class<?>                              type;
     /**
      * 缓存该接口下实例
      */
@@ -40,7 +42,7 @@ public class ExtensionLoader<T> {
     /**
      * 存放该type接口下的所有类
      */
-    private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<>();
+    private final Holder<Map<String, Class<?>>>         cachedClasses   = new Holder<>();
 
     private String cachedDefaultName;
 
@@ -107,7 +109,7 @@ public class ExtensionLoader<T> {
         if (instance == null) {
 
             synchronized (holder) {
-                
+
                 instance = holder.get();
                 if (instance == null) {
                     instance = createExtension(name);
@@ -129,6 +131,7 @@ public class ExtensionLoader<T> {
         }
 
         T instance = (T) EXTENSION_INSTANCES.get(clazz);
+
         if (instance == null) {
             try {
                 EXTENSION_INSTANCES.putIfAbsent(clazz, clazz.newInstance());

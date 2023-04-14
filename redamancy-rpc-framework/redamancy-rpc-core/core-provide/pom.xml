@@ -23,6 +23,12 @@
             <artifactId>register-api</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>fang.redamancy</groupId>
+            <artifactId>register-nacos</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 </project>

@@ -17,10 +17,10 @@ import static org.springframework.context.annotation.AnnotationConfigUtils.regis
  * @Version 1.0
  */
 public class CustomScanner extends ClassPathBeanDefinitionScanner {
-    public CustomScanner(BeanDefinitionRegistry registry, Class<? extends Annotation> anooType, Environment environment,
+    public CustomScanner(BeanDefinitionRegistry registry, boolean isDefault, Class<? extends Annotation> anooType, Environment environment,
                          ResourceLoader resourceLoader) {
 
-        super(registry);
+        super(registry, isDefault);
 
         //添加过滤器,过滤出带有@FangService的类
         super.addIncludeFilter(new AnnotationTypeFilter(anooType));

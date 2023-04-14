@@ -1,7 +1,7 @@
 package fang.redamancy.core.config.spring.annotation.config;
 
-import fang.redamancy.core.config.support.subclass.FangNodeConfig;
-import fang.redamancy.core.config.support.subclass.FangRegistryConfig;
+import fang.redamancy.core.config.support.model.FangNodeConfig;
+import fang.redamancy.core.config.support.model.FangRegistryConfig;
 
 /**
  * @Author redamancy

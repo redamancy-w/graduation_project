@@ -29,8 +29,8 @@ public abstract class AbstractRegisterFactory implements RegisterFactory {
 
     @Override
     public Register getRegistryClient(URL url) {
-        String id    = url.getRpcServiceId();
-        long   stamp = LOCK.readLock();
+        String id = url.getUrl();
+        long stamp = LOCK.readLock();
 
         try {
             Register register = REGISTRIES.get(id);

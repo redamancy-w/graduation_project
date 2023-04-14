@@ -1,20 +1,32 @@
 package fang.redamancy.core.config.support;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import fang.redamancy.core.common.annotation.FangReference;
 import fang.redamancy.core.common.annotation.FangService;
 import fang.redamancy.core.common.constant.Constants;
-import fang.redamancy.core.common.extension.ExtensionLoader;
 import fang.redamancy.core.common.net.support.URL;
 import fang.redamancy.core.common.util.ConfigUtil;
 import fang.redamancy.core.common.util.RuntimeUtil;
-import fang.redamancy.core.config.support.subclass.FangNodeConfig;
-import fang.redamancy.core.config.support.subclass.FangRegistryConfig;
+import fang.redamancy.core.config.support.model.FangNodeConfig;
+import fang.redamancy.core.config.support.model.FangRegistryConfig;
+import fang.redamancy.core.config.util.SpringApplicationContextPool;
+import fang.redamancy.core.provide.ServiceProvider;
+import fang.redamancy.core.provide.support.Impl.ServiceProviderImpl;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.imageio.spi.ServiceRegistry;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,9 +42,24 @@ import java.util.concurrent.TimeUnit;
  */
 @Setter
 @Getter
-public class AbstractServiceConfig<T> extends ServiceConfig {
+public class AbstractServiceConfig<T> extends ServiceConfig implements ApplicationContextAware, DisposableBean {
+
     private static final long serialVersionUID = 43873823728L;
 
+    /**
+     * springioc 上下文
+     */
+    protected static transient ApplicationContext SPRING_CONTEXT;
+
+    /**
+     * referencebean是否初始化
+     */
+    protected transient volatile boolean init;
+
+    protected transient boolean supportedApplicationListener;
+
+
+    protected transient ApplicationContext applicationContext;
 
     private final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(RuntimeUtil.cpus(),
             new ThreadFactoryBuilder()
@@ -47,35 +74,39 @@ public class AbstractServiceConfig<T> extends ServiceConfig {
      */
     protected String id;
 
+
     /**
      *
      */
-    protected T                    ref;
-    protected String               group;
-    protected String               version;
-    protected String               host;
-    protected Integer              port;
-    private   List<FangNodeConfig> nodeConfigs;
-    private   FangRegistryConfig   registryConfig;
-
+    protected T ref;
+    protected String group;
+    protected String version;
+    protected String host;
+    protected Integer port;
+    private List<FangNodeConfig> nodeConfigs;
+    private FangRegistryConfig registryConfig;
     protected Integer delay;
+
+    protected String beanName;
 
     /**
      * 是否已暴露
      */
-    private Boolean isExposed;
+    private volatile boolean isExposed;
 
     /**
      * 实现的接口
      */
-    private String interfaceName;
+    protected String interfaceName;
 
-    private Class<?> interfaceClass;
+    protected Class<?> interfaceClass;
 
     public synchronized void export() {
-        if (isExposed != null && !isExposed) {
+
+        if (isExposed()) {
             return;
         }
+
         if (delay != null && delay > 0) {
             scheduledExecutorService.schedule(new Runnable() {
                 public void run() {
@@ -111,6 +142,25 @@ public class AbstractServiceConfig<T> extends ServiceConfig {
 
     }
 
+    protected Class<?> getInterfaceClass() {
+
+        if (interfaceClass != null) {
+            return interfaceClass;
+        }
+
+        try {
+
+            if (interfaceName != null && interfaceName.length() > 0) {
+                this.interfaceClass = Class.forName(interfaceName, true, Thread.currentThread()
+                        .getContextClassLoader());
+            }
+
+        } catch (ClassNotFoundException t) {
+            throw new IllegalStateException(t.getMessage(), t);
+        }
+        return interfaceClass;
+    }
+
     private void doExportUrls() {
 
         List<URL> registryURLs = loadNodes();
@@ -121,15 +171,28 @@ public class AbstractServiceConfig<T> extends ServiceConfig {
             // 设置
             map.put(Constants.PID_KEY, String.valueOf(ConfigUtil.getPid()));
         }
-        appendParameters(map, registryConfig);
+
         //TODO 获得本地ip，和host；或者根据配置文件中的ip后进行注册，
 
+        if (!CollectionUtils.isEmpty(registryURLs)) {
+
+            for (URL registryURL : registryURLs) {
+
+                ServiceProvider provider = new ServiceProviderImpl(registryURL);
+
+                scheduledExecutorService.execute(() -> {
+                    provider.publishService(registryURL, interfaceClass);
+                });
+            }
+
+        }
 
     }
 
-
     private List<URL> loadNodes() {
+
         checkNode();
+
         List<URL> nodeList = new ArrayList<URL>();
 
         for (FangNodeConfig nodeConfig : nodeConfigs) {
@@ -139,7 +202,7 @@ public class AbstractServiceConfig<T> extends ServiceConfig {
                 address = Constants.ANYHOST_VALUE;
             }
 
-            if (!StringUtils.hasText(address)) {
+            if (StringUtils.hasText(address)) {
                 Map<String, String> map = new HashMap<String, String>();
                 appendParameters(map, registryConfig);
                 appendParameters(map, nodeConfig);
@@ -196,6 +259,10 @@ public class AbstractServiceConfig<T> extends ServiceConfig {
         appendAnnotation(FangService.class, service);
     }
 
+    public AbstractServiceConfig(FangReference reference) {
+        appendAnnotation(FangReference.class, reference);
+    }
+
     public void setInterface(String interfaceName) {
         this.interfaceName = interfaceName;
         if (!StringUtils.hasText(id)) {
@@ -205,5 +272,95 @@ public class AbstractServiceConfig<T> extends ServiceConfig {
 
     public String getInterface() {
         return this.interfaceName;
+    }
+
+
+    protected void fullConfig() {
+
+        if (CollectionUtils.isEmpty(getNodeConfigs())) {
+
+            Map<String, FangNodeConfig> fangNodeConfigMap = applicationContext == null ? null
+                    : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, FangNodeConfig.class, false, false);
+            if (fangNodeConfigMap != null && fangNodeConfigMap.size() > 0) {
+
+                List<FangNodeConfig> nodeConfigs = new ArrayList<FangNodeConfig>();
+
+                for (FangNodeConfig config : fangNodeConfigMap.values()) {
+                    if (config.getIsDefault() == null || config.getIsDefault().booleanValue()) {
+                        nodeConfigs.add(config);
+                    }
+                }
+                if (!CollectionUtils.isEmpty(nodeConfigs)) {
+                    setNodeConfigs(nodeConfigs);
+                }
+            }
+        }
+
+
+        //TODO 注册信息类的注入
+        if (getRegistryConfig() == null) {
+
+            Map<String, FangNodeConfig> fangNodeConfigMap = applicationContext == null ? null
+                    : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, FangNodeConfig.class, false, false);
+            if (fangNodeConfigMap != null && fangNodeConfigMap.size() > 0) {
+
+                FangNodeConfig fangNodeConfig = null;
+                for (FangNodeConfig config : fangNodeConfigMap.values()) {
+                    if (config.getIsDefault() == null || config.getIsDefault().booleanValue()) {
+
+                        if (fangNodeConfig != null) {
+                            throw new IllegalStateException("有重复的配置: " + fangNodeConfig + " and " + config);
+                        }
+                        fangNodeConfig = config;
+                    }
+                }
+                if (fangNodeConfig != null) {
+
+                }
+
+            }
+        }
+    }
+
+    @Override
+    public void setApplicationContext(@NotNull ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+
+        SpringApplicationContextPool.addApplicationContext(applicationContext);
+        SPRING_CONTEXT = applicationContext;
+
+        try {
+
+            //向后兼容spring
+            Method method = applicationContext.getClass().getMethod("addApplicationListener", new Class<?>[]{ApplicationListener.class});
+            method.invoke(applicationContext, new Object[]{this});
+            supportedApplicationListener = true;
+
+        } catch (Throwable t) {
+
+            if (applicationContext instanceof AbstractApplicationContext) {
+
+                try {
+                    //向后兼容
+                    Method method = AbstractApplicationContext.class.getDeclaredMethod("addListener", new Class<?>[]{ApplicationListener.class});
+
+                    if (!method.isAccessible()) {
+                        method.setAccessible(true);
+                    }
+
+                    method.invoke(applicationContext, new Object[]{this});
+                    supportedApplicationListener = true;
+                } catch (Throwable t2) {
+
+                }
+
+            }
+
+        }
+    }
+
+    @Override
+    public void destroy() throws Exception {
+
     }
 }

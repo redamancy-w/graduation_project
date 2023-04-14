@@ -2,21 +2,29 @@ package fang.redamancy.core.config.spring.annotation.processor;
 
 import fang.redamancy.core.common.annotation.FangService;
 import fang.redamancy.core.config.spring.annotation.server.CustomScanner;
+import fang.redamancy.core.config.support.service.ApplicationListenerRegistrar;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanClassLoaderAware;
-import org.springframework.beans.factory.config.*;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.config.SingletonBeanRegistry;
 import org.springframework.beans.factory.support.*;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.AnnotationBeanNameGenerator;
+import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.rootBeanDefinition;
 import static org.springframework.context.annotation.AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR;
@@ -32,7 +40,7 @@ import static org.springframework.util.ClassUtils.resolveClassName;
  */
 @Slf4j
 public class ServiceAnnotationScanPostProcessor implements BeanDefinitionRegistryPostProcessor, EnvironmentAware,
-        ResourceLoaderAware, BeanClassLoaderAware {
+        ResourceLoaderAware, BeanClassLoaderAware, Ordered {
 
 
     private Environment environment;
@@ -81,7 +89,7 @@ public class ServiceAnnotationScanPostProcessor implements BeanDefinitionRegistr
      * @param registry
      */
     private void registerServiceBeans(Set<String> resolvedPackagesToScan, BeanDefinitionRegistry registry) {
-        CustomScanner scanner = new CustomScanner(registry, FangService.class, environment, resourceLoader);
+        CustomScanner scanner = new CustomScanner(registry, false, FangService.class, environment, resourceLoader);
 
         // beanName解析器
         BeanNameGenerator beanNameGenerator = resolveBeanNameGenerator(registry);
@@ -107,7 +115,6 @@ public class ServiceAnnotationScanPostProcessor implements BeanDefinitionRegistr
                     registerApplicationListenerRegistrar(beanDefinitionHolder, registry, scanner);
                 }
 
-
             } else {
 
                 log.warn("在配置的包路径下没有发现带有@FangService的类["
@@ -130,7 +137,6 @@ public class ServiceAnnotationScanPostProcessor implements BeanDefinitionRegistr
         Class<?> interfaceClass = resolveServiceInterfaceClass(beanClass, service);
 
         String annotatedServiceBeanName = beanDefinitionHolder.getBeanName();
-
 
         // 构建ApplicationListenerRegistrar对象的BeanDefinition,通过Service注解对象，以及接口服务的实现类生成
         AbstractBeanDefinition serviceBeanDefinition =
@@ -158,16 +164,16 @@ public class ServiceAnnotationScanPostProcessor implements BeanDefinitionRegistr
     private String generateServiceBeanName(Class<?> interfaceClass, String annotatedServiceBeanName) {
 
         return "ServiceBean@" + interfaceClass.getName() + "#" + annotatedServiceBeanName;
+
     }
 
 
     private AbstractBeanDefinition buildApplicationListenerRegistrarDefinition(FangService service, Class<?> interfaceClass, String annotatedServiceBeanName) {
 
-        BeanDefinitionBuilder builder = rootBeanDefinition(FangService.class)
+        BeanDefinitionBuilder builder = rootBeanDefinition(ApplicationListenerRegistrar.class)
                 .addConstructorArgValue(service)
                 //将ref属性引用到带有@FangService注解的bean上
-                .addPropertyReference("ref", annotatedServiceBeanName)
-                .addPropertyValue("interface", interfaceClass.getName());
+                .addPropertyReference("ref", annotatedServiceBeanName).addPropertyValue("interface", interfaceClass.getName());
 
         return builder.getBeanDefinition();
     }
@@ -190,7 +196,7 @@ public class ServiceAnnotationScanPostProcessor implements BeanDefinitionRegistr
         }
 
         Assert.notNull(interfaceClass,
-                "@Service 所注释的类必须实现接口");
+                "@FangService 所注释的类必须实现接口");
 
         return interfaceClass;
 
@@ -304,4 +310,9 @@ public class ServiceAnnotationScanPostProcessor implements BeanDefinitionRegistr
     }
 
 
+    @Override
+    public int getOrder() {
+
+        return LOWEST_PRECEDENCE;
+    }
 }
