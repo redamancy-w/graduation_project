@@ -37,6 +37,7 @@ public class ReferenceAnnotationScanPostProcessor extends InstantiationAwareBean
         implements MergedBeanDefinitionPostProcessor, PriorityOrdered, ApplicationContextAware, BeanClassLoaderAware,
         DisposableBean {
 
+    public static final String BEAN_NAME = "referenceAnnotationScanPostProcessor";
     private ApplicationContext applicationContext;
 
     private ClassLoader classLoader;
@@ -125,7 +126,6 @@ public class ReferenceAnnotationScanPostProcessor extends InstantiationAwareBean
                             log.warn("@Reference annotation is not supported on static fields: " + field);
                         }
                         return;
-
                     }
                     elements.add(new ReferenceFieldElement(field, reference));
                 }
@@ -161,20 +161,16 @@ public class ReferenceAnnotationScanPostProcessor extends InstantiationAwareBean
             ReflectionUtils.makeAccessible(field);
             field.set(bean, referenceBean);
         }
-
     }
 
     private Object buildReferenceBean(FangReference reference, Class<?> referenceClass) throws Exception {
         String referenceBeanCacheKey = generateReferenceBeanCacheKey(reference, referenceClass);
-
-
         ReferenceFieldBean<?> referenceBean = referenceBeansCache.get(referenceBeanCacheKey);
 
         if (referenceBean == null) {
 
             //TODO RefrenceBean的创建
-
-            ReferenceFieldBean referenceFieldBean = new ReferenceFieldBean(reference, referenceClass);
+            referenceBean = new ReferenceFieldBean(reference, referenceClass, classLoader, applicationContext);
             referenceBeansCache.putIfAbsent(referenceBeanCacheKey, referenceBean);
 
         }
@@ -188,7 +184,6 @@ public class ReferenceAnnotationScanPostProcessor extends InstantiationAwareBean
         String interfaceName = resolveInterfaceName(reference, beanClass);
         String key = reference.group() + "/" + interfaceName + ":" + reference.version();
         return key;
-
     }
 
     private static String resolveInterfaceName(FangReference reference, Class<?> beanClass)
@@ -202,10 +197,9 @@ public class ReferenceAnnotationScanPostProcessor extends InstantiationAwareBean
             throw new IllegalStateException(
                     "The @Reference undefined interfaceClass or interfaceName, and the property type "
                             + beanClass.getName() + " is not a interface.");
+
         }
-
         return interfaceName;
-
     }
 
     @Override

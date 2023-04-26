@@ -1,17 +1,14 @@
 package fang.redamancy.core.config.support;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import fang.redamancy.core.common.annotation.FangReference;
 import fang.redamancy.core.common.annotation.FangService;
 import fang.redamancy.core.common.constant.Constants;
 import fang.redamancy.core.common.net.support.URL;
 import fang.redamancy.core.common.util.ConfigUtil;
-import fang.redamancy.core.common.util.RuntimeUtil;
+import fang.redamancy.core.common.util.NetUtil;
 import fang.redamancy.core.config.support.model.FangNodeConfig;
 import fang.redamancy.core.config.support.model.FangRegistryConfig;
 import fang.redamancy.core.config.util.SpringApplicationContextPool;
-import fang.redamancy.core.provide.ServiceProvider;
-import fang.redamancy.core.provide.support.Impl.ServiceProviderImpl;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -22,18 +19,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.imageio.spi.ServiceRegistry;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
 
 /**
  * @Author redamancy
@@ -58,15 +50,10 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
 
     protected transient boolean supportedApplicationListener;
 
-
     protected transient ApplicationContext applicationContext;
 
-    private final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(RuntimeUtil.cpus(),
-            new ThreadFactoryBuilder()
-                    .setNameFormat("Exposed-Service-pool-")
-                    .setDaemon(true)
-                    .build()
-    );
+
+    protected static Map<String, String> cacheMap = new HashMap<>();
 
     /**
      * id
@@ -83,8 +70,8 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
     protected String version;
     protected String host;
     protected Integer port;
-    private List<FangNodeConfig> nodeConfigs;
-    private FangRegistryConfig registryConfig;
+    protected FangNodeConfig nodeConfig;
+    protected FangRegistryConfig registryConfig;
     protected Integer delay;
 
     protected String beanName;
@@ -101,46 +88,17 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
 
     protected Class<?> interfaceClass;
 
-    public synchronized void export() {
-
-        if (isExposed()) {
-            return;
-        }
-
-        if (delay != null && delay > 0) {
-            scheduledExecutorService.schedule(new Runnable() {
-                public void run() {
-                    doExport();
-                }
-            }, delay, TimeUnit.MILLISECONDS);
-        } else {
-            doExport();
-        }
-
+    public AbstractServiceConfig(FangService service) {
+        appendAnnotation(FangService.class, service);
     }
 
-
-    protected synchronized void doExport() {
-        if (isExposed) {
-            return;
-        }
-        isExposed = true;
-        if (interfaceName == null || interfaceName.length() == 0) {
-            throw new IllegalStateException("<fang:service interface=\"\" /> interface not allow null!");
-        }
-
-        try {
-            interfaceClass = Class.forName(interfaceName, true, Thread.currentThread()
-                    .getContextClassLoader());
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        }
-        checkInterfaceAndMethods(interfaceClass);
-        checkRef();
-        doExportUrls();
-
-
+    public AbstractServiceConfig(FangReference reference) {
+        appendAnnotation(FangReference.class, reference);
     }
+
+    public AbstractServiceConfig() {
+    }
+
 
     protected Class<?> getInterfaceClass() {
 
@@ -161,75 +119,51 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
         return interfaceClass;
     }
 
-    private void doExportUrls() {
 
-        List<URL> registryURLs = loadNodes();
+    protected URL loadNodes() {
+
+        checkNode();
+        URL url = null;
+
+        String address = nodeConfig.getAddress();
+
+        if (!StringUtils.hasText(address)) {
+            address = Constants.ANYHOST_VALUE;
+        }
+
+        if (!StringUtils.hasText(address)) {
+            throw new IllegalStateException("未配置注册中心地址信息");
+        }
 
         Map<String, String> map = new HashMap<String, String>();
+        appendParameters(map, registryConfig);
+        appendParameters(map, nodeConfig);
+
+        map.put("path", ServiceRegistry.class.getName());
+        map.put(Constants.INTERFACE_KEY, interfaceName);
+        map.put(Constants.VERSION_KEY, version);
+        map.put(Constants.GROUP_KEY, group);
+        map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
+        map.put(Constants.BIND_PORT, getBindPort());
 
         if (ConfigUtil.getPid() > 0) {
-            // 设置
             map.put(Constants.PID_KEY, String.valueOf(ConfigUtil.getPid()));
         }
 
-        //TODO 获得本地ip，和host；或者根据配置文件中的ip后进行注册，
+        url = ConfigUtil.parseURL(address, map);
 
-        if (!CollectionUtils.isEmpty(registryURLs)) {
-
-            for (URL registryURL : registryURLs) {
-
-                ServiceProvider provider = new ServiceProviderImpl(registryURL);
-
-                scheduledExecutorService.execute(() -> {
-                    provider.publishService(registryURL, interfaceClass);
-                });
-            }
-
-        }
-
+        return url;
     }
 
-    private List<URL> loadNodes() {
-
-        checkNode();
-
-        List<URL> nodeList = new ArrayList<URL>();
-
-        for (FangNodeConfig nodeConfig : nodeConfigs) {
-            String address = nodeConfig.getAddress();
-
-            if (!StringUtils.hasText(address)) {
-                address = Constants.ANYHOST_VALUE;
-            }
-
-            if (StringUtils.hasText(address)) {
-                Map<String, String> map = new HashMap<String, String>();
-                appendParameters(map, registryConfig);
-                appendParameters(map, nodeConfig);
-
-                map.put("path", ServiceRegistry.class.getName());
-                map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
-                if (ConfigUtil.getPid() > 0) {
-                    map.put(Constants.PID_KEY, String.valueOf(ConfigUtil.getPid()));
-                }
-
-                URL url = ConfigUtil.parseURL(address, map);
-
-                nodeList.add(url);
-            }
-        }
-
-        return nodeList;
-    }
 
     private void checkNode() {
-        if (CollectionUtils.isEmpty(nodeConfigs)) {
+        if (Objects.isNull(nodeConfig)) {
             throw new IllegalStateException(
                     "未检测到配置的注册中心节点信息");
         }
     }
 
-    private void checkRef() {
+    protected void checkRef() {
         if (ref == null) {
             throw new IllegalStateException("ref not allow null!");
         }
@@ -242,7 +176,7 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
 
     }
 
-    private void checkInterfaceAndMethods(Class<?> interfaceClass) {
+    protected void checkInterfaceAndMethods(Class<?> interfaceClass) {
 
         if (interfaceClass == null) {
             throw new IllegalStateException("interface not allow null!");
@@ -255,14 +189,6 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
     }
 
 
-    public AbstractServiceConfig(FangService service) {
-        appendAnnotation(FangService.class, service);
-    }
-
-    public AbstractServiceConfig(FangReference reference) {
-        appendAnnotation(FangReference.class, reference);
-    }
-
     public void setInterface(String interfaceName) {
         this.interfaceName = interfaceName;
         if (!StringUtils.hasText(id)) {
@@ -274,24 +200,27 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
         return this.interfaceName;
     }
 
-
     protected void fullConfig() {
 
-        if (CollectionUtils.isEmpty(getNodeConfigs())) {
+        if (Objects.isNull(getNodeConfig())) {
 
             Map<String, FangNodeConfig> fangNodeConfigMap = applicationContext == null ? null
                     : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, FangNodeConfig.class, false, false);
             if (fangNodeConfigMap != null && fangNodeConfigMap.size() > 0) {
 
-                List<FangNodeConfig> nodeConfigs = new ArrayList<FangNodeConfig>();
+                FangNodeConfig nodeConfigs = null;
 
                 for (FangNodeConfig config : fangNodeConfigMap.values()) {
                     if (config.getIsDefault() == null || config.getIsDefault().booleanValue()) {
-                        nodeConfigs.add(config);
+                        if (nodeConfigs != null) {
+                            throw new IllegalStateException("有重复的配置: " + nodeConfigs + " and " + config);
+                        }
+                        nodeConfigs = config;
                     }
                 }
-                if (!CollectionUtils.isEmpty(nodeConfigs)) {
-                    setNodeConfigs(nodeConfigs);
+
+                if (!Objects.isNull(nodeConfigs)) {
+                    setNodeConfig(nodeConfigs);
                 }
             }
         }
@@ -300,24 +229,26 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
         //TODO 注册信息类的注入
         if (getRegistryConfig() == null) {
 
-            Map<String, FangNodeConfig> fangNodeConfigMap = applicationContext == null ? null
-                    : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, FangNodeConfig.class, false, false);
-            if (fangNodeConfigMap != null && fangNodeConfigMap.size() > 0) {
+            Map<String, FangRegistryConfig> fangRegistryConfigMap = applicationContext == null ? null
+                    : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, FangRegistryConfig.class, false, false);
+            if (fangRegistryConfigMap != null && fangRegistryConfigMap.size() > 0) {
 
-                FangNodeConfig fangNodeConfig = null;
-                for (FangNodeConfig config : fangNodeConfigMap.values()) {
+                FangRegistryConfig fangRegistryConfig = null;
+
+                for (FangRegistryConfig config : fangRegistryConfigMap.values()) {
+
                     if (config.getIsDefault() == null || config.getIsDefault().booleanValue()) {
 
-                        if (fangNodeConfig != null) {
-                            throw new IllegalStateException("有重复的配置: " + fangNodeConfig + " and " + config);
+                        if (fangRegistryConfig != null) {
+                            throw new IllegalStateException("有重复的配置: " + fangRegistryConfig + " and " + config);
                         }
-                        fangNodeConfig = config;
+                        fangRegistryConfig = config;
                     }
                 }
-                if (fangNodeConfig != null) {
 
+                if (fangRegistryConfig != null) {
+                    setRegistryConfig(fangRegistryConfig);
                 }
-
             }
         }
     }
@@ -330,7 +261,6 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
         SPRING_CONTEXT = applicationContext;
 
         try {
-
             //向后兼容spring
             Method method = applicationContext.getClass().getMethod("addApplicationListener", new Class<?>[]{ApplicationListener.class});
             method.invoke(applicationContext, new Object[]{this});
@@ -359,8 +289,30 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
         }
     }
 
+    private String getBindPort() {
+        Integer portToBind = null;
+
+        if (cacheMap.containsKey(Constants.BIND_PORT)) {
+            return cacheMap.get(Constants.BIND_PORT);
+        }
+
+        portToBind = registryConfig.getBindPort();
+
+
+        if (portToBind == null) {
+
+            portToBind = Constants.BIND_PORT_DEFAULT;
+        }
+
+        if (portToBind <= 0) {
+            portToBind = NetUtil.getAvailablePort();
+        }
+
+        cacheMap.put(Constants.BIND_PORT, String.valueOf(portToBind));
+        return String.valueOf(portToBind);
+    }
+
     @Override
     public void destroy() throws Exception {
-
     }
 }

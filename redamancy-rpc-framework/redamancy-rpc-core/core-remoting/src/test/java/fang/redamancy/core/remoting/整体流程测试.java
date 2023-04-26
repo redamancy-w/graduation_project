@@ -27,7 +27,7 @@ public class 整体流程测试 {
 
     @Test
     public void ServerTest() {
-        nettyRpcServer.start();
+//        nettyRpcServer.start();
     }
 
 

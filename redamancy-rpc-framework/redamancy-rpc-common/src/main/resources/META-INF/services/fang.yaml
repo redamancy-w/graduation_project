@@ -5,3 +5,12 @@ extensionClasses:
     gzip: fang.redamancy.core.protocol.compress.gzip.GzipCompress
   fang.redamancy.core.register.api.factory.RegisterFactory:
     nacos: fang.redamancy.core.register.nacos.factory.NacosRegistryFactory
+  fang.redamancy.loadbalance.LoadBalance:
+    random: fang.redamancy.loadbalance.impl.RandomLoadBalance
+    consistentHash: fang.redamancy.loadbalance.impl.ConsistentHashLoadBalance
+  fang.redamancy.core.proxy.ProxyFactory:
+    jdk: fang.redamancy.core.proxy.support.impl.JDKProxyFactory
+  fang.redamancy.core.remoting.transport.RpcRequestTransport:
+    netty: fang.redamancy.core.remoting.transport.netty.client.NettyRpcClient
+  fang.redamancy.core.remoting.transport.netty.server.RpcServer:
+    netty: fang.redamancy.core.remoting.transport.netty.server.NettyRpcServer

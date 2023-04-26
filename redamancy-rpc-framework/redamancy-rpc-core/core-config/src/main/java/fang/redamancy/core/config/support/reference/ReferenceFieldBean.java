@@ -1,11 +1,14 @@
 package fang.redamancy.core.config.support.reference;
 
 import fang.redamancy.core.common.annotation.FangReference;
+import fang.redamancy.core.common.extension.ExtensionLoader;
+import fang.redamancy.core.common.net.support.URL;
 import fang.redamancy.core.config.support.AbstractServiceConfig;
+import fang.redamancy.core.proxy.Invoker;
+import fang.redamancy.core.proxy.ProxyFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationContext;
 
 import java.util.Objects;
 
@@ -17,19 +20,26 @@ import java.util.Objects;
  * @Version 1.0
  */
 @Slf4j
-public class ReferenceFieldBean<T> extends AbstractServiceConfig<T> implements FactoryBean, ApplicationContextAware, InitializingBean {
+public class ReferenceFieldBean<T> extends AbstractServiceConfig implements FactoryBean {
 
+    private final ClassLoader classLoader;
 
-    public ReferenceFieldBean(FangReference reference, Class<?> interfaceClazz) {
+    private static final ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getDefaultExtension();
 
+    private transient volatile Invoker<?> invoker;
+
+    public ReferenceFieldBean(FangReference reference, Class<?> interfaceClazz, ClassLoader classLoader,
+                              ApplicationContext applicationContext) {
         super(reference);
+        this.classLoader = classLoader;
+        this.applicationContext = applicationContext;
         this.interfaceClass = interfaceClazz;
-        this.interfaceName = interfaceClazz.getSimpleName();
-
+        this.interfaceName = interfaceClazz.getName();
     }
 
     public Object get() {
 
+        fullConfig();
         if (Objects.isNull(ref)) {
             initProxyObj();
         }
@@ -44,15 +54,23 @@ public class ReferenceFieldBean<T> extends AbstractServiceConfig<T> implements F
         if (interfaceName == null || interfaceName.length() == 0) {
             throw new IllegalStateException("<fang:reference interface=\"\" /> interface not allow null!");
         }
+
         try {
             interfaceClass = Class.forName(interfaceName, true, Thread.currentThread()
                     .getContextClassLoader());
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
-
+        ref = createProxy();
     }
 
+    @SuppressWarnings({"unchecked"})
+    private T createProxy() {
+        URL url = loadNodes();
+        invoker = proxyFactory.refer(interfaceClass, url);
+
+        return (T) proxyFactory.getProxy(invoker);
+    }
 
     @Override
     public Object getObject() throws Exception {
@@ -63,20 +81,6 @@ public class ReferenceFieldBean<T> extends AbstractServiceConfig<T> implements F
     @Override
     public Class<?> getObjectType() {
         return getInterfaceClass();
-    }
-
-    /**
-     * bean初始化时属性初始化后的处理方法，
-     *
-     * @throws Exception
-     */
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        fullConfig();
-
-        if (!isInit()) {
-            getObject();
-        }
     }
 
 }

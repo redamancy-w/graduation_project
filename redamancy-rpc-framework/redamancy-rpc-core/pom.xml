@@ -18,6 +18,7 @@
         <module>core-config</module>
         <module>core-proxy</module>
         <module>core-provide</module>
+        <module>core-loadbalance</module>
     </modules>
 
     <artifactId>redamancy-rpc-core</artifactId>

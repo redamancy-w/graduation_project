@@ -1,5 +1,6 @@
 package fang.redamancy.core.provide;
 
+import fang.redamancy.core.common.model.RpcRequest;
 import fang.redamancy.core.common.net.support.URL;
 
 /**
@@ -14,21 +15,22 @@ public interface ServiceProvider {
      *
      * @param url rpc service related attributes
      */
-    void addService(URL url, Class<?> interfaceClazz);
+    void addService(URL url, Class<?> interfaceClazz, Object server);
 
     /**
-     * 向注册中心查询服务
+     * 得到服务
      *
-     * @param url rpc service related attributes
+     * @param servName 服务名字
      * @return service object
      */
-    Object getService(URL url);
+    Object getService(String servName);
 
     /**
      * 同addService
      *
      * @param url rpc service related attributes
      */
-    void publishService(URL url, Class<?> interfaceClazz);
+    void publishService(URL url, Class<?> interfaceClazz, Object server);
 
+    URL getAddress(URL url, RpcRequest request);
 }

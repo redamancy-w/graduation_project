@@ -3,7 +3,6 @@ package fang.redamancy.core.remoting.transport.netty.client.bufferpool;
 import io.netty.channel.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -26,10 +25,10 @@ public class ChannelProvider {
 
     public Channel get(InetSocketAddress inetSocketAddress) {
         String key = inetSocketAddress.toString();
-        // determine if there is a connection for the corresponding address
+
         if (channelMap.containsKey(key)) {
             Channel channel = channelMap.get(key);
-            // if so, determine if the connection is available, and if so, get it directly
+            //检测缓存中的channel是否活跃
             if (channel != null && channel.isActive()) {
                 return channel;
             } else {

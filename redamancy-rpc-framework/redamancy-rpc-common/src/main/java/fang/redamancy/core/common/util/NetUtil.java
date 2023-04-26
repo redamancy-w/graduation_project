@@ -18,15 +18,20 @@ public class NetUtil {
 
     private static final int RND_PORT_RANGE = 10000;
 
-    private static final Random RANDOM    = new Random(System.currentTimeMillis());
-    public static final  String LOCALHOST = "127.0.0.1";
+    private static final Random RANDOM = new Random(System.currentTimeMillis());
+    public static final String LOCALHOST = "127.0.0.1";
 
     public static String getLocalhost() {
         InetAddress local;
+
         try {
+
             local = InetAddress.getLocalHost();
+
         } catch (UnknownHostException e) {
+
             throw new RuntimeException(e);
+
         }
         return local == null ? LOCALHOST : local.getHostAddress();
     }

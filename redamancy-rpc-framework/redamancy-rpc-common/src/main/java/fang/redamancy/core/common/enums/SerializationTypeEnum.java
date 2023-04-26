@@ -5,6 +5,7 @@ import lombok.Getter;
 
 /**
  * 序列化类型
+ *
  * @Author redamancy
  * @Date 2022/11/27 15:39
  * @Version 1.0
@@ -16,7 +17,7 @@ public enum SerializationTypeEnum {
     /**
      * kyro
      */
-    KYRO((byte) 0x01, "kyro"),
+    KYRO((byte) 0x01, "kryo"),
 
     /**
      * hessian
@@ -25,7 +26,7 @@ public enum SerializationTypeEnum {
 
     private final byte code;
     private final String name;
-    
+
     public static String getName(byte code) {
 
         for (SerializationTypeEnum c : SerializationTypeEnum.values()) {
@@ -34,6 +35,16 @@ public enum SerializationTypeEnum {
             }
         }
         return null;
+    }
+
+    public static byte getCode(String name) {
+        for (SerializationTypeEnum serializationTypeEnum : SerializationTypeEnum.values()) {
+            if (serializationTypeEnum.getName().equals(name)) {
+                return serializationTypeEnum.getCode();
+            }
+        }
+
+        return 0x0;
     }
 
 }

@@ -33,24 +33,24 @@ public class RpcEncoder extends MessageToByteEncoder<RpcMessage> {
     protected void encode(ChannelHandlerContext channelHandlerContext, RpcMessage rpcMessage, ByteBuf out) {
         try {
             out.writeBytes(RpcConstants.MAGIC_NUMBER);
-            ByteBuf mkOut = out.markWriterIndex();
+            out.markWriterIndex();
             //预留4的长度后续填入 full length
             out.writerIndex(out.writerIndex() + 4);
 
             byte messageType = rpcMessage.getMessageType();
             out.writeByte(messageType);
             out.writeByte(rpcMessage.getCodec());
-            out.writeByte(CompressTypeEnum.GZIP.getCode());
+            out.writeByte(rpcMessage.getCompress());
             out.writeInt(ATOMIC_INTEGER.getAndIncrement());
 
-            buildBody(rpcMessage, out, mkOut);
+            buildBody(rpcMessage, out);
 
         } catch (Exception e) {
             log.error("Encode error!", e);
         }
     }
 
-    private void buildBody(RpcMessage rpcMessage, ByteBuf out, ByteBuf mkOut) {
+    private void buildBody(RpcMessage rpcMessage, ByteBuf out) {
 
         byte[] bodyBytes = null;
         byte messageType = rpcMessage.getMessageType();
@@ -79,7 +79,10 @@ public class RpcEncoder extends MessageToByteEncoder<RpcMessage> {
         if (bodyBytes != null) {
             out.writeBytes(bodyBytes);
         }
-        mkOut.writeInt(fullLength);
+        int writeIndex = out.writerIndex();
+        out.resetWriterIndex();
+        out.writeInt(fullLength);
+        out.writerIndex(writeIndex);
     }
 
 }

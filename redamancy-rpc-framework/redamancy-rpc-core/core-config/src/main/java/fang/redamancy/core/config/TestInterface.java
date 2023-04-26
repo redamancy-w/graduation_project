@@ -7,5 +7,5 @@ package fang.redamancy.core.config;
  */
 public interface TestInterface {
 
-    void test();
+    String test();
 }

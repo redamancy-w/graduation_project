@@ -1,6 +1,8 @@
 package fang.redamancy.core.provide.support;
 
 import fang.redamancy.core.common.constant.Constants;
+import fang.redamancy.core.common.enums.RpcErrorMessageEnum;
+import fang.redamancy.core.common.exception.RpcException;
 import fang.redamancy.core.common.extension.ExtensionLoader;
 import fang.redamancy.core.common.net.support.URL;
 import fang.redamancy.core.provide.ServiceProvider;
@@ -26,9 +28,18 @@ public abstract class AbstractServiceProvider implements ServiceProvider {
     /**
      * 注册中心客户端
      */
-    protected Register        register;
+    protected Register register;
 
-    private Map<String, URL> interfaceToUrl = new ConcurrentHashMap<>();
+    private static final Map<String, URL> interfaceToUrl = new ConcurrentHashMap<>();
+    private static final Map<String, Class<?>> interfaceMap = new ConcurrentHashMap<>();
+
+    /**
+     * 储存服务对象
+     */
+    private static final Map<String, Object> serviceMap = new ConcurrentHashMap<>();
+
+    public AbstractServiceProvider() {
+    }
 
     public AbstractServiceProvider(URL url) {
         String protocol = getProtocol(url);
@@ -42,29 +53,36 @@ public abstract class AbstractServiceProvider implements ServiceProvider {
 
 
     @Override
-    public void addService(URL url, Class<?> interfaceClazz) {
+    public void addService(URL url, Class<?> interfaceClazz, Object server) {
         if (Objects.isNull(url)) {
             throw new IllegalArgumentException("url 为空");
         }
+        String interfaceKey = url.getRpcServiceKey(interfaceClazz.getName());
+        interfaceToUrl.put(interfaceKey, url);
+        interfaceMap.put(interfaceKey, interfaceClazz);
+        serviceMap.put(interfaceKey, server);
 
-        String interfaceName =
-                StringUtils.hasText(url.getInterfaceName()) ? url.getInterfaceName() : interfaceClazz.getSimpleName();
-
-        interfaceToUrl.put(interfaceName, url);
         doAddService(url);
     }
+
 
     protected abstract void doAddService(URL url);
 
     @Override
-    public Object getService(URL url) {
-        return null;
+    public Object getService(String serverName) {
+        Object service = serviceMap.get(serverName);
+
+        if (null == service) {
+            throw new RpcException(RpcErrorMessageEnum.SERVICE_CAN_NOT_BE_FOUND);
+        }
+
+        return service;
 
     }
 
     @Override
-    public void publishService(URL url, Class<?> interfaceClazz) {
-        addService(url, interfaceClazz);
+    public void publishService(URL url, Class<?> interfaceClazz, Object server) {
+        addService(url, interfaceClazz, server);
     }
 
 }

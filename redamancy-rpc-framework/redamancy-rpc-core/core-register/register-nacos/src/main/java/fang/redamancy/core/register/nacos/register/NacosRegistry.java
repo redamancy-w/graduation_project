@@ -4,6 +4,7 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import fang.redamancy.core.common.constant.Constants;
 import fang.redamancy.core.common.constant.nacosattribute.NacosSupport;
 import fang.redamancy.core.common.net.support.URL;
 import fang.redamancy.core.common.util.NetUtil;
@@ -11,6 +12,10 @@ import fang.redamancy.core.common.util.RuntimeUtil;
 import fang.redamancy.core.register.api.registration.failback.FailbackRegister;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -48,12 +53,14 @@ public class NacosRegistry extends FailbackRegister {
     }
 
     private String getServiceName(URL url) {
-        return url.getInterfaceName();
+        return url.getRpcServiceKey(null);
     }
 
     protected void doRegister(URL url) {
+
         final String serviceName = getServiceName(url);
         final Instance instance = createInstance(url);
+
         execute(new NamingServiceCallback() {
             @Override
             public void callback(NamingService namingService) throws NacosException {
@@ -82,7 +89,8 @@ public class NacosRegistry extends FailbackRegister {
         String ip = NetUtil.getLocalhost();
         Instance instance = new Instance();
         instance.setIp(ip);
-        instance.setPort(NetUtil.getAvailablePort());
+        instance.setPort(url.getParameter(Constants.BIND_PORT, Constants.BIND_PORT_DEFAULT));
+
         instance.setWeight(url.getParameter(NacosSupport.WEIGHT_KEY, NacosSupport.DEFAULT_WEIGHT));
         instance.setMetadata(url.getParameters());
 
@@ -98,6 +106,52 @@ public class NacosRegistry extends FailbackRegister {
             }
         });
     }
+
+    private void executeSyn(NamingServiceCallback callback) {
+        try {
+            callback.callback(namingService);
+        } catch (NacosException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    @Override
+    public List<URL> discoverRegister(String serviceKey) {
+
+        final List<URL> urls = new LinkedList<URL>();
+        executeSyn(new NamingServiceCallback() {
+            @Override
+            public void callback(NamingService namingService) throws NacosException {
+                List<Instance> instances = namingService.getAllInstances(serviceKey);
+                urls.addAll(buildAddress(instances));
+            }
+        });
+        return urls;
+    }
+
+    private Collection<URL> buildAddress(List<Instance> instances) {
+        if (instances.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<URL> urls = new LinkedList<URL>();
+        for (Instance instance : instances) {
+            URL url = buildURL(instance);
+            urls.add(url);
+        }
+        return urls;
+    }
+
+    private URL buildURL(Instance instance) {
+
+        URL url = new URL(instance.getMetadata().get(Constants.PROTOCOL_KEY),
+                instance.getIp(),
+                instance.getPort(),
+                instance.getMetadata());
+        return url;
+
+    }
+
 
     interface NamingServiceCallback {
         void callback(NamingService namingService) throws NacosException;

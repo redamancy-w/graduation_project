@@ -1,5 +1,6 @@
 package fang.redamancy.core.proxy.support;
 
+import fang.redamancy.core.common.model.RpcInvocation;
 import fang.redamancy.core.proxy.Invoker;
 
 import java.lang.reflect.InvocationHandler;
@@ -34,6 +35,6 @@ public class InvokerInvocationHandler implements InvocationHandler {
             return invoker.equals(args[0]);
         }
 
-        return null;
+        return invoker.invoke(new RpcInvocation(method, args));
     }
 }

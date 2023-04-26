@@ -1,5 +1,6 @@
 package fang.redamancy.core.common.net.support;
 
+import fang.redamancy.core.common.constant.Constants;
 import fang.redamancy.core.common.constant.nacosattribute.NacosSupport;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -8,9 +9,11 @@ import lombok.Setter;
 import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 用于请求注册中心中的节点
@@ -31,10 +34,6 @@ public final class URL implements Serializable {
      */
     private String rpcServiceId;
 
-    /**
-     * 服务名
-     */
-    private String interfaceName;
 
     /**
      * 注册中心
@@ -47,15 +46,15 @@ public final class URL implements Serializable {
     /**
      * 注册中心客户端user
      */
-    private String  username;
+    private String username;
     /**
      * 注册中心客户端密码
      */
-    private String  password;
+    private String password;
     /**
      * 注册中心ip
      */
-    private String  host;
+    private String host;
     /**
      * 注册中心端口
      */
@@ -70,6 +69,51 @@ public final class URL implements Serializable {
      * 参数
      */
     private Map<String, String> parameters;
+
+    private volatile transient Map<String, Number> numbers;
+
+    private Map<String, Number> getNumbers() {
+        if (numbers == null) {
+            numbers = new ConcurrentHashMap<String, Number>();
+        }
+        return numbers;
+    }
+
+
+    public String getRpcServiceKey(String serviceName) {
+        StringBuilder sb = new StringBuilder()
+                .append(getParameter(Constants.GROUP_KEY, Constants.GROUP_DEFAULT))
+                .append(":")
+                .append(StringUtils.hasText(serviceName) ? serviceName : getParameter(Constants.INTERFACE_KEY))
+                .append(":")
+                .append(getParameter(Constants.VERSION_KEY, Constants.VERSION_DEFAULT));
+
+        return String.valueOf(sb);
+    }
+
+    public int getMethodParameter(String method, String key, int defaultValue) {
+        String methodKey = method + "." + key;
+        Number n = getNumbers().get(methodKey);
+        if (n != null) {
+            return n.intValue();
+        }
+        String value = getMethodParameter(method, key);
+        if (value == null || value.length() == 0) {
+            return defaultValue;
+        }
+        int i = Integer.parseInt(value);
+        getNumbers().put(methodKey, i);
+        return i;
+    }
+
+    public String getMethodParameter(String method, String key) {
+        String value = parameters.get(method + "." + key);
+        if (value == null || value.length() == 0) {
+            return getParameter(key);
+        }
+        return value;
+    }
+
 
     public String getParameter(String key) {
         String value = parameters.get(key);
@@ -86,6 +130,14 @@ public final class URL implements Serializable {
         }
         int i = Integer.parseInt(value);
         return i;
+    }
+
+    public String getParameter(String key, String defaultValue) {
+        String value = getParameter(key);
+        if (value == null || value.length() == 0) {
+            return defaultValue;
+        }
+        return value;
     }
 
 
@@ -136,6 +188,13 @@ public final class URL implements Serializable {
         return new URL(protocol, username, password, host, port, path, null);
     }
 
+    public URL(String protocol, String host, int port, Map<String, String> parameters) {
+        this(protocol, null, null, host, port, null, parameters);
+    }
+
+    public void putValue(String key, String value) {
+        this.parameters.put(key, value);
+    }
 
     public URL(String protocol, String username, String password, String host, int port, String path, Map<String, String> parameters) {
 
@@ -162,6 +221,11 @@ public final class URL implements Serializable {
             parameters = new HashMap<String, String>(parameters);
         }
         this.parameters = Collections.unmodifiableMap(parameters);
+    }
+
+    public InetSocketAddress getAddress() {
+
+        return InetSocketAddress.createUnresolved(getHost(), getPort());
     }
 
     public String getUrl() {

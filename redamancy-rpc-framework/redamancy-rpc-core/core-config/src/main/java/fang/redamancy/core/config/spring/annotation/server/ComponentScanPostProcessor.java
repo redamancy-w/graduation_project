@@ -12,6 +12,7 @@ public class ComponentScanPostProcessor implements BeanPostProcessor {
 
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+
         return BeanPostProcessor.super.postProcessBeforeInitialization(bean, beanName);
     }
 

@@ -1,7 +1,6 @@
 package fang.redamancy.core.config;
 
 import fang.redamancy.core.common.annotation.FangService;
-import lombok.Data;
 
 /**
  * @Author redamancy
@@ -9,12 +8,12 @@ import lombok.Data;
  * @Version 1.0
  */
 
-@FangService
-@Data
+@FangService(version = "1.0.1", group = "def")
 public class TestImpl implements TestInterface {
 
     @Override
-    public void test() {
+    public String test() {
         System.out.println("test");
+        return "test";
     }
 }

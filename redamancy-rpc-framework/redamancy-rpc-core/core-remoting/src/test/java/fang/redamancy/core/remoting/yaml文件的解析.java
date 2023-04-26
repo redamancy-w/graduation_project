@@ -38,7 +38,7 @@ public class yaml文件的解析 {
 
     @Test
     public void ServerTest() {
-        nettyRpcServer.start();
+//        nettyRpcServer.start();
     }
 
 

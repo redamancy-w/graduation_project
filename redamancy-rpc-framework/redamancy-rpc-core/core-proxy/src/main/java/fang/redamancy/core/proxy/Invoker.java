@@ -1,21 +1,34 @@
 package fang.redamancy.core.proxy;
 
-import fang.redamancy.core.common.net.support.Node;
+import fang.redamancy.core.common.model.RpcInvocation;
+import fang.redamancy.core.common.model.RpcResponse;
+import fang.redamancy.core.common.net.support.URL;
 import org.springframework.remoting.support.RemoteInvocationResult;
 
 /**
+ * 调用执行
+ *
  * @Author redamancy
  * @Date 2023/4/9 14:28
  * @Version 1.0
  */
-public interface Invoker<T> extends Node {
+public interface Invoker<T> {
+
 
     /**
-     * get interface
+     * 调用
      *
-     * @return
+     * @param rpcInvocation rpc调用
+     * @return {@link RemoteInvocationResult}
+     */
+    RpcResponse invoke(RpcInvocation rpcInvocation);
+
+    URL getUrl();
+
+    /**
+     * 获得接口名
+     *
+     * @return {@link Class}<{@link ?}>
      */
     Class<?> getInterface();
-
-    RemoteInvocationResult invoke(RpcInvocation rpcInvocation);
 }

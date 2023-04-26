@@ -1,12 +1,10 @@
 package fang.redamancy.core.config.spring.annotation.server;
 
+import fang.redamancy.core.config.spring.annotation.processor.ReferenceAnnotationScanPostProcessor;
 import fang.redamancy.core.config.spring.annotation.processor.ServiceAnnotationScanPostProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionReaderUtils;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.*;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.Ordered;
@@ -23,6 +21,8 @@ import java.util.Set;
 import static org.springframework.beans.factory.support.BeanDefinitionBuilder.rootBeanDefinition;
 
 /**
+ * 用于导入注册服务和创建代理对象的处理类
+ *
  * @Author redamancy
  * @Date 2023/2/27 14:36
  * @Version 1.0
@@ -43,8 +43,18 @@ public class FangComponentScanRegister implements ImportBeanDefinitionRegistrar,
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 
         Set<String> packagesToScan = getPackagesToScan(importingClassMetadata);
-
         registerServiceAnnotationBeanPostProcessor(packagesToScan, registry);
+        registerReferenceAnnotationBeanPostProcessor(registry);
+    }
+
+
+    private void registerReferenceAnnotationBeanPostProcessor(BeanDefinitionRegistry registry) {
+
+        if (!registry.containsBeanDefinition(ReferenceAnnotationScanPostProcessor.BEAN_NAME)) {
+            RootBeanDefinition beanDefinition = new RootBeanDefinition(ReferenceAnnotationScanPostProcessor.class);
+            beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+            registry.registerBeanDefinition(ReferenceAnnotationScanPostProcessor.BEAN_NAME, beanDefinition);
+        }
 
     }
 

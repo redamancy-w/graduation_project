@@ -36,4 +36,6 @@ public class RpcConstants {
     public static final String PING = "ping";
     public static final String PONG = "pong";
     public static final int MAX_FRAME_LENGTH = 8 * 1024 * 1024;
+    public static final byte HEARTBEAT_RESPONSE_TYPE = 4;
+    public static final byte HEARTBEAT_REQUEST_TYPE = 3;
 }

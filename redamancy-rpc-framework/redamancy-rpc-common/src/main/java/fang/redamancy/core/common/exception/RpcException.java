@@ -1,5 +1,7 @@
 package fang.redamancy.core.common.exception;
 
+import fang.redamancy.core.common.enums.RpcErrorMessageEnum;
+
 /**
  * @Author redamancy
  * @Date 2023/4/9 14:29
@@ -18,6 +20,10 @@ public final class RpcException extends RuntimeException {
 
     public RpcException() {
         super();
+    }
+
+    public RpcException(RpcErrorMessageEnum rpcErrorMessageEnum) {
+        super(rpcErrorMessageEnum.getMessage());
     }
 
     public RpcException(String message, Throwable cause) {

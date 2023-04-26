@@ -1,3 +1,10 @@
 fang:
   node:
     address: nacos://localhost:8848
+    username: nacos
+    password: nacos
+  register:
+    transport: netty
+    bindPort: 53242
+server:
+  port: 8084

@@ -33,10 +33,9 @@ public class FangNodeConfig extends ServiceConfig {
 
     private Integer port;
 
-    private String userName;
+    private String username;
 
     private String password;
-
 
     private Boolean isDefault;
 

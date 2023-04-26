@@ -61,7 +61,7 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
             ByteBuf frame = (ByteBuf) decoded;
             if (frame.readableBytes() >= RpcConstants.TOTAL_LENGTH) {
                 try {
-                    return decodeFrame(in);
+                    return decodeFrame(frame);
                 } catch (Exception e) {
                     log.error("Decode frame error", e);
                     throw e;
