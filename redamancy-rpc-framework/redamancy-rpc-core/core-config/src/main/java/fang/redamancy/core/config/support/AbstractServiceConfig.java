@@ -3,11 +3,11 @@ package fang.redamancy.core.config.support;
 import fang.redamancy.core.common.annotation.FangReference;
 import fang.redamancy.core.common.annotation.FangService;
 import fang.redamancy.core.common.constant.Constants;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.common.util.ConfigUtil;
 import fang.redamancy.core.common.util.NetUtil;
 import fang.redamancy.core.config.support.model.FangNodeConfig;
-import fang.redamancy.core.config.support.model.FangRegistryConfig;
+import fang.redamancy.core.config.support.model.FangRegisterConfig;
 import fang.redamancy.core.config.util.SpringApplicationContextPool;
 import lombok.Getter;
 import lombok.Setter;
@@ -68,10 +68,11 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
     protected T ref;
     protected String group;
     protected String version;
+    protected String timeout;
     protected String host;
     protected Integer port;
-    protected FangNodeConfig nodeConfig;
-    protected FangRegistryConfig registryConfig;
+    protected FangRegisterConfig nodeConfig;
+    protected FangNodeConfig registryConfig;
     protected Integer delay;
 
     protected String beanName;
@@ -120,10 +121,10 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
     }
 
 
-    protected URL loadNodes() {
+    protected RpcConfig loadNodes() {
 
         checkNode();
-        URL url = null;
+        RpcConfig rpcConfig = null;
 
         String address = nodeConfig.getAddress();
 
@@ -143,6 +144,7 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
         map.put(Constants.INTERFACE_KEY, interfaceName);
         map.put(Constants.VERSION_KEY, version);
         map.put(Constants.GROUP_KEY, group);
+        map.put(Constants.TIMEOUT_KEY, timeout);
         map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
         map.put(Constants.BIND_PORT, getBindPort());
 
@@ -150,9 +152,9 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
             map.put(Constants.PID_KEY, String.valueOf(ConfigUtil.getPid()));
         }
 
-        url = ConfigUtil.parseURL(address, map);
+        rpcConfig = ConfigUtil.parseURL(address, map);
 
-        return url;
+        return rpcConfig;
     }
 
 
@@ -204,13 +206,13 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
 
         if (Objects.isNull(getNodeConfig())) {
 
-            Map<String, FangNodeConfig> fangNodeConfigMap = applicationContext == null ? null
-                    : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, FangNodeConfig.class, false, false);
+            Map<String, FangRegisterConfig> fangNodeConfigMap = applicationContext == null ? null
+                    : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, FangRegisterConfig.class, false, false);
             if (fangNodeConfigMap != null && fangNodeConfigMap.size() > 0) {
 
-                FangNodeConfig nodeConfigs = null;
+                FangRegisterConfig nodeConfigs = null;
 
-                for (FangNodeConfig config : fangNodeConfigMap.values()) {
+                for (FangRegisterConfig config : fangNodeConfigMap.values()) {
                     if (config.getIsDefault() == null || config.getIsDefault().booleanValue()) {
                         if (nodeConfigs != null) {
                             throw new IllegalStateException("有重复的配置: " + nodeConfigs + " and " + config);
@@ -229,25 +231,25 @@ public class AbstractServiceConfig<T> extends ServiceConfig implements Applicati
         //TODO 注册信息类的注入
         if (getRegistryConfig() == null) {
 
-            Map<String, FangRegistryConfig> fangRegistryConfigMap = applicationContext == null ? null
-                    : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, FangRegistryConfig.class, false, false);
+            Map<String, FangNodeConfig> fangRegistryConfigMap = applicationContext == null ? null
+                    : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, FangNodeConfig.class, false, false);
             if (fangRegistryConfigMap != null && fangRegistryConfigMap.size() > 0) {
 
-                FangRegistryConfig fangRegistryConfig = null;
+                FangNodeConfig fangNodeConfig = null;
 
-                for (FangRegistryConfig config : fangRegistryConfigMap.values()) {
+                for (FangNodeConfig config : fangRegistryConfigMap.values()) {
 
                     if (config.getIsDefault() == null || config.getIsDefault().booleanValue()) {
 
-                        if (fangRegistryConfig != null) {
-                            throw new IllegalStateException("有重复的配置: " + fangRegistryConfig + " and " + config);
+                        if (fangNodeConfig != null) {
+                            throw new IllegalStateException("有重复的配置: " + fangNodeConfig + " and " + config);
                         }
-                        fangRegistryConfig = config;
+                        fangNodeConfig = config;
                     }
                 }
 
-                if (fangRegistryConfig != null) {
-                    setRegistryConfig(fangRegistryConfig);
+                if (fangNodeConfig != null) {
+                    setRegistryConfig(fangNodeConfig);
                 }
             }
         }

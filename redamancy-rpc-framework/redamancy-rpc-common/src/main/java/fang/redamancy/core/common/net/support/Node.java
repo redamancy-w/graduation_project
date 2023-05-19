@@ -1,5 +1,7 @@
 package fang.redamancy.core.common.net.support;
 
+import fang.redamancy.core.common.model.RpcConfig;
+
 /**
  * 主机节点
  *
@@ -16,5 +18,5 @@ public interface Node {
      */
     boolean isActive();
 
-    URL getUrl();
+    RpcConfig getUrl();
 }

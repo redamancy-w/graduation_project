@@ -3,7 +3,7 @@ package fang.redamancy.core.register.api.registration.failback;
 import com.alibaba.nacos.common.utils.ConcurrentHashSet;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import fang.redamancy.core.common.constant.nacosattribute.NacosSupport;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.common.util.RuntimeUtil;
 import fang.redamancy.core.register.api.registration.support.AbstractServiceRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -31,19 +31,20 @@ public abstract class FailbackRegister extends AbstractServiceRegistry {
     /**
      * 注册失败的容器
      */
-    private final Set<URL> failedRegistered = new ConcurrentHashSet<URL>();
+    private final Set<RpcConfig> failedRegistered = new ConcurrentHashSet<RpcConfig>();
 
-    public FailbackRegister(URL url) {
-        super(url);
+    public FailbackRegister(RpcConfig rpcConfig) {
+        super(rpcConfig);
 
         /**
          * 重试的启动时间
          */
-        int retryPeriod = url.getParameter(NacosSupport.REGISTRY_RETRY_PERIOD_KEY,
+        int retryPeriod = rpcConfig.getParameter(NacosSupport.REGISTRY_RETRY_PERIOD_KEY,
                 NacosSupport.DEFAULT_REGISTRY_RETRY_PERIOD);
         this.scheduledExecutorService.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
+
                 try {
                     retry();
                 } catch (Throwable t) { // Defensive fault tolerance
@@ -53,28 +54,29 @@ public abstract class FailbackRegister extends AbstractServiceRegistry {
         }, retryPeriod, retryPeriod, TimeUnit.MILLISECONDS);
     }
 
+
     @Override
-    public void register(URL url) {
-        super.register(url);
-        failedRegistered.remove(url);
+    public void register(RpcConfig rpcConfig) {
+        super.register(rpcConfig);
+        failedRegistered.remove(rpcConfig);
         try {
-            doRegister(url);
+            doRegister(rpcConfig);
         } catch (Exception e) {
-            failedRegistered.add(url);
-            log.error("注册失败url:{}", url);
+            failedRegistered.add(rpcConfig);
+            log.error("注册失败url:{}", rpcConfig);
         }
     }
 
     protected void retry() {
         if (!failedRegistered.isEmpty()) {
-            Set<URL> failed = new HashSet<URL>(failedRegistered);
+            Set<RpcConfig> failed = new HashSet<RpcConfig>(failedRegistered);
             if (failed.size() > 0) {
                 log.info("Retry register " + failed);
                 try {
-                    for (URL url : failed) {
+                    for (RpcConfig rpcConfig : failed) {
                         try {
-                            doRegister(url);
-                            failedRegistered.remove(url);
+                            doRegister(rpcConfig);
+                            failedRegistered.remove(rpcConfig);
                         } catch (Throwable t) { // Ignore all the exceptions and wait for the next retry
                             log.warn("Failed to retry register " + failed + ", waiting for again, cause: " + t.getMessage(), t);
                         }
@@ -89,15 +91,15 @@ public abstract class FailbackRegister extends AbstractServiceRegistry {
     /**
      * 注册服务 *
      *
-     * @param url
+     * @param rpcConfig
      */
-    protected abstract void doRegister(URL url);
+    protected abstract void doRegister(RpcConfig rpcConfig);
 
     /**
      * 注销服务
      *
-     * @param url
+     * @param rpcConfig
      */
-    protected abstract void doUnsubscribe(URL url);
+    protected abstract void doUnsubscribe(RpcConfig rpcConfig);
 
 }

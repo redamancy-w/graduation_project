@@ -1,7 +1,7 @@
 package fang.redamancy.core.remoting.transport.netty.server;
 
 import fang.redamancy.core.common.constant.Constants;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.common.util.RuntimeUtil;
 import fang.redamancy.core.common.util.ThreadPollFactoryUtil;
 import fang.redamancy.core.protocol.regulation.RpcDecoder;
@@ -10,14 +10,11 @@ import fang.redamancy.core.remoting.transport.netty.server.handler.NettyRpcServe
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @Author redamancy
@@ -29,6 +26,7 @@ public class NettyRpcServer implements RpcServer {
 
 
     public static final String SERVICE_HANDLER_GROUP = "service_handler_group";
+    public static final String SERVICE_WORKER_GROUP = "service_worker_group";
 
     EventLoopGroup bossGroup;
     EventLoopGroup workerGroup;
@@ -38,15 +36,23 @@ public class NettyRpcServer implements RpcServer {
 
     @Override
     @SneakyThrows
-    public void start(URL config) {
+    public void start(RpcConfig config) {
 
         Integer port = getPort(config);
 
+        //负责接受新的连接
         bossGroup = new NioEventLoopGroup(1);
-        workerGroup = new NioEventLoopGroup();
-        DefaultEventExecutorGroup serviceHandlerGroup = new DefaultEventExecutorGroup(
-                RuntimeUtil.cpus() * 2, ThreadPollFactoryUtil.createThreadFactory(SERVICE_HANDLER_GROUP, false)
+
+
+        //负责处理读写
+        workerGroup = new NioEventLoopGroup(
+//                ThreadPollFactoryUtil.createThreadFactory(SERVICE_WORKER_GROUP, false)
         );
+
+        DefaultEventExecutorGroup serviceHandlerGroup = new DefaultEventExecutorGroup(RuntimeUtil.cpus() * 2,
+                ThreadPollFactoryUtil.createThreadFactory(SERVICE_HANDLER_GROUP, false)
+        );
+
         bootstarp = new ServerBootstrap();
         bootstarp.group(bossGroup, workerGroup)
 
@@ -58,13 +64,13 @@ public class NettyRpcServer implements RpcServer {
                 //表示系统用于临时存放已完成三次握手的请求的队列的最大长度,如果连接建立频繁，服务器处理创建新连接较慢，可以适当调大这个参数
                 .option(ChannelOption.SO_BACKLOG, 128)
                 // 当客户端第一次进行请求的时候才会进行初始化
-                .childHandler(new ChannelInitializer<SocketChannel>() {
+                .childHandler(new ChannelInitializer<NioSocketChannel>() {
 
                     @Override
-                    protected void initChannel(SocketChannel ch) {
+                    protected void initChannel(NioSocketChannel ch) {
                         // 30 秒之内没有收到客户端请求的话就关闭连接
                         ChannelPipeline p = ch.pipeline();
-                        p.addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS));
+//                        p.addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS));
                         p.addLast(new RpcEncoder());
                         p.addLast(new RpcDecoder());
                         p.addLast(serviceHandlerGroup, new NettyRpcServerHandler());
@@ -77,7 +83,7 @@ public class NettyRpcServer implements RpcServer {
         channel = channelFuture.channel();
     }
 
-    private Integer getPort(URL config) {
+    private Integer getPort(RpcConfig config) {
         return config.getParameter(Constants.BIND_PORT, Constants.BIND_PORT_DEFAULT);
     }
 }

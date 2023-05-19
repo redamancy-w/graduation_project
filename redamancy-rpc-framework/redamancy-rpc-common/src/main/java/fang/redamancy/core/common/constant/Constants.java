@@ -27,7 +27,7 @@ public class Constants {
     public static final String VERSION_KEY = "version";
 
     public static final String VERSION_DEFAULT = "0.0.0";
-    public static final int DEFAULT_TIMEOUT = 1000;
+    public static final int DEFAULT_TIMEOUT = 5000;
     public static final byte HEARTBEAT_REQUEST_TYPE = 3;
     public static final String TEMP_URL = "temp://localhost:0";
     public static final String PROTOCOL_KEY = "protocol";
@@ -41,9 +41,11 @@ public class Constants {
     public static final String COMPRESS = "compress";
 
     public static final String COMPRESS_DEFAULT = "gizp";
-    public static final String LOAD_BALANCE = "loadBalance";
+    public static final String LOAD_BALANCE = "load.balance";
     public static final String LOAD_BALANCE_DEFAULT = "random";
-    public static final String IS_SERVER = "isServer";
+    public static final String IS_SERVER = "is.server";
     public static final String BIND_PORT = "bind.port";
-    public static final int BIND_PORT_DEFAULT = 200049;
+    public static final int BIND_PORT_DEFAULT = 20049;
+    public static final String SHORT_CONNECTION = "short.connection";
+    public static final String SHORT_CONNECTION_DEFAULT = "false";
 }

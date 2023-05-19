@@ -3,8 +3,6 @@ package fang.redamancy.core.config;
 import fang.redamancy.core.config.spring.annotation.EnableFangRpc;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 
@@ -15,7 +13,7 @@ import javax.annotation.Resource;
  */
 @SpringBootApplication
 @EnableFangRpc
-@RestController
+//@RestController
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -24,11 +22,11 @@ public class Application {
     @Resource
     private TestService testService;
 
-    @GetMapping("test")
-    public String test() {
-        return testService.test();
-
-    }
+//    @GetMapping("test")
+//    public String test() {
+//        return testService.test();
+//
+//    }
 
 }
 

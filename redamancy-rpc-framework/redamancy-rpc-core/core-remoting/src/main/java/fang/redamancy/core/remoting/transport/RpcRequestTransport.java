@@ -7,8 +7,9 @@ package fang.redamancy.core.remoting.transport;
  */
 
 import fang.redamancy.core.common.extension.SPI;
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.common.model.RpcInvocation;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcResponse;
 
 /**
  * rpc 客户端接口
@@ -25,5 +26,5 @@ public interface RpcRequestTransport {
      * @return {@link Object}
      */
 
-    Object request(RpcInvocation invocation, int timeout, URL url);
+    RpcResponse request(RpcInvocation invocation, int timeout, RpcConfig rpcConfig);
 }

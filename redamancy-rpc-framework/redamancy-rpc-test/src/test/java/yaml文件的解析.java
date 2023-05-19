@@ -1,5 +1,3 @@
-package fang.redamancy.core.remoting;
-
 import fang.redamancy.core.common.asyn.ApplicationContextPro;
 import fang.redamancy.core.common.extension.ExtensionLoader;
 import fang.redamancy.core.common.model.ExtensionYaml;
@@ -58,11 +56,10 @@ public class yaml文件的解析 {
         URL url = ExtensionLoader.class.getClassLoader().getResource("META-INF/services/fang.yaml");
         try (BufferedReader inputStream = new BufferedReader(new FileReader(url.getPath()))) {
 
-
             Representer representer = new Representer();
             representer.getPropertyUtils().setSkipMissingProperties(true);
             Yaml yaml = new Yaml(new Constructor(ExtensionYaml.class), representer);
-            
+
             ExtensionYaml extensionYaml = yaml.load(inputStream);
             extensionYaml.hashCode();
         } catch (IOException e) {

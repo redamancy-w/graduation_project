@@ -2,7 +2,7 @@ package fang.redamancy.core.proxy;
 
 import fang.redamancy.core.common.exception.RpcException;
 import fang.redamancy.core.common.extension.SPI;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcConfig;
 
 /**
  * 代理对象创建工厂
@@ -24,5 +24,5 @@ public interface ProxyFactory {
      */
     <T> T getProxy(Invoker<T> invoker) throws RpcException;
 
-    <B> Invoker<B> refer(Class<B> type, URL url) throws RpcException;
+    <B> Invoker<B> refer(Class<B> type, RpcConfig rpcConfig) throws RpcException;
 }

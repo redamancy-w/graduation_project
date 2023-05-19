@@ -34,7 +34,7 @@ public class ExtensionLoader<T> {
     /**
      * 该ExtensionLoader的类型
      */
-    private final Class<?>                              type;
+    private final Class<?> type;
     /**
      * 缓存该接口下实例
      */
@@ -42,7 +42,7 @@ public class ExtensionLoader<T> {
     /**
      * 存放该type接口下的所有类
      */
-    private final Holder<Map<String, Class<?>>>         cachedClasses   = new Holder<>();
+    private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<>();
 
     private String cachedDefaultName;
 

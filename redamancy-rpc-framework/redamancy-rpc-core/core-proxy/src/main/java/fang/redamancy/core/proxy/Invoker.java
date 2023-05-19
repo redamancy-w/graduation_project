@@ -2,7 +2,6 @@ package fang.redamancy.core.proxy;
 
 import fang.redamancy.core.common.model.RpcInvocation;
 import fang.redamancy.core.common.model.RpcResponse;
-import fang.redamancy.core.common.net.support.URL;
 import org.springframework.remoting.support.RemoteInvocationResult;
 
 /**
@@ -23,7 +22,6 @@ public interface Invoker<T> {
      */
     RpcResponse invoke(RpcInvocation rpcInvocation);
 
-    URL getUrl();
 
     /**
      * 获得接口名

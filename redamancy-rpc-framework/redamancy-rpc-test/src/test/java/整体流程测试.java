@@ -1,5 +1,3 @@
-package fang.redamancy.core.remoting;
-
 import fang.redamancy.core.common.asyn.ApplicationContextPro;
 import fang.redamancy.core.protocol.serialize.Serializer;
 import fang.redamancy.core.remoting.transport.netty.server.NettyRpcServer;

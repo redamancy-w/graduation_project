@@ -26,4 +26,12 @@ public @interface FangReference {
      * @return
      */
     String group() default "";
+
+
+    /**
+     * 超时
+     */
+    String timeout() default "5000";
+
 }
+

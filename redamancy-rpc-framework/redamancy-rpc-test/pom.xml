@@ -20,43 +20,7 @@
     <dependencies>
         <dependency>
             <groupId>fang.redamancy</groupId>
-            <artifactId>redamancy-rpc-core</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>fang.redamancy</groupId>
-            <artifactId>redamancy-rpc-common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>fang.redamancy</groupId>
-            <artifactId>core-protocol</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>fang.redamancy</groupId>
-            <artifactId>core-remoting</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>fang.redamancy</groupId>
-            <artifactId>register-api</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>fang.redamancy</groupId>
-            <artifactId>register-nacos</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>fang.redamancy</groupId>
-            <artifactId>core-register</artifactId>
+            <artifactId>redamancy-rpc-starter</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>

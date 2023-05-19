@@ -3,12 +3,10 @@ package fang.redamancy.core.register.nacos.register;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import fang.redamancy.core.common.constant.Constants;
 import fang.redamancy.core.common.constant.nacosattribute.NacosSupport;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.common.util.NetUtil;
-import fang.redamancy.core.common.util.RuntimeUtil;
 import fang.redamancy.core.register.api.registration.failback.FailbackRegister;
 import lombok.extern.slf4j.Slf4j;
 
@@ -16,8 +14,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**
  * @Author redamancy
@@ -37,29 +33,20 @@ public class NacosRegistry extends FailbackRegister {
      */
     private final NamingService namingService;
 
-    /**
-     *
-     */
-    private final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(RuntimeUtil.cpus(),
-            new ThreadFactoryBuilder()
-                    .setNameFormat("FailRegister-pool-")
-                    .setDaemon(true)
-                    .build()
-    );
 
-    public NacosRegistry(NamingService namingService, URL url) {
-        super(url);
+    public NacosRegistry(NamingService namingService, RpcConfig rpcConfig) {
+        super(rpcConfig);
         this.namingService = namingService;
     }
 
-    private String getServiceName(URL url) {
-        return url.getRpcServiceKey(null);
+    private String getServiceName(RpcConfig rpcConfig) {
+        return rpcConfig.getRpcServiceKey(null);
     }
 
-    protected void doRegister(URL url) {
+    protected void doRegister(RpcConfig rpcConfig) {
 
-        final String serviceName = getServiceName(url);
-        final Instance instance = createInstance(url);
+        final String serviceName = getServiceName(rpcConfig);
+        final Instance instance = createInstance(rpcConfig);
 
         execute(new NamingServiceCallback() {
             @Override
@@ -69,9 +56,9 @@ public class NacosRegistry extends FailbackRegister {
         });
     }
 
-    protected void doUnsubscribe(URL url) {
-        final String serviceName = getServiceName(url);
-        final Instance instance = createInstance(url);
+    protected void doUnsubscribe(RpcConfig rpcConfig) {
+        final String serviceName = getServiceName(rpcConfig);
+        final Instance instance = createInstance(rpcConfig);
         execute(new NamingServiceCallback() {
             @Override
             public void callback(NamingService namingService) throws NacosException {
@@ -85,26 +72,25 @@ public class NacosRegistry extends FailbackRegister {
         return NACOS_IS_ACTIVE_STATE.equals(namingService.getServerStatus());
     }
 
-    private Instance createInstance(URL url) {
+    private Instance createInstance(RpcConfig rpcConfig) {
         String ip = NetUtil.getLocalhost();
         Instance instance = new Instance();
         instance.setIp(ip);
-        instance.setPort(url.getParameter(Constants.BIND_PORT, Constants.BIND_PORT_DEFAULT));
-
-        instance.setWeight(url.getParameter(NacosSupport.WEIGHT_KEY, NacosSupport.DEFAULT_WEIGHT));
-        instance.setMetadata(url.getParameters());
+        instance.setPort(rpcConfig.getParameter(Constants.BIND_PORT, Constants.BIND_PORT_DEFAULT));
+        instance.setWeight(rpcConfig.getParameter(NacosSupport.WEIGHT_KEY, NacosSupport.DEFAULT_WEIGHT));
+        instance.setMetadata(rpcConfig.getParameters());
 
         return instance;
     }
 
     private void execute(NamingServiceCallback callback) {
-        scheduledExecutorService.execute(() -> {
-            try {
-                callback.callback(namingService);
-            } catch (NacosException e) {
-                log.error(e.getErrMsg(), e);
-            }
-        });
+
+        try {
+            callback.callback(namingService);
+        } catch (NacosException e) {
+            log.error(e.getErrMsg(), e);
+            throw new RuntimeException();
+        }
     }
 
     private void executeSyn(NamingServiceCallback callback) {
@@ -117,38 +103,39 @@ public class NacosRegistry extends FailbackRegister {
 
 
     @Override
-    public List<URL> discoverRegister(String serviceKey) {
+    public List<RpcConfig> discoverRegister(String serviceKey) {
 
-        final List<URL> urls = new LinkedList<URL>();
+        final List<RpcConfig> rpcConfigs = new LinkedList<RpcConfig>();
         executeSyn(new NamingServiceCallback() {
             @Override
             public void callback(NamingService namingService) throws NacosException {
                 List<Instance> instances = namingService.getAllInstances(serviceKey);
-                urls.addAll(buildAddress(instances));
+                rpcConfigs.addAll(buildAddress(instances));
             }
         });
-        return urls;
+        return rpcConfigs;
     }
 
-    private Collection<URL> buildAddress(List<Instance> instances) {
+
+    private Collection<RpcConfig> buildAddress(List<Instance> instances) {
         if (instances.isEmpty()) {
             return Collections.emptyList();
         }
-        List<URL> urls = new LinkedList<URL>();
+        List<RpcConfig> rpcConfigs = new LinkedList<RpcConfig>();
         for (Instance instance : instances) {
-            URL url = buildURL(instance);
-            urls.add(url);
+            RpcConfig rpcConfig = buildURL(instance);
+            rpcConfigs.add(rpcConfig);
         }
-        return urls;
+        return rpcConfigs;
     }
 
-    private URL buildURL(Instance instance) {
+    private RpcConfig buildURL(Instance instance) {
 
-        URL url = new URL(instance.getMetadata().get(Constants.PROTOCOL_KEY),
+        RpcConfig rpcConfig = new RpcConfig(instance.getMetadata().get(Constants.PROTOCOL_KEY),
                 instance.getIp(),
                 instance.getPort(),
                 instance.getMetadata());
-        return url;
+        return rpcConfig;
 
     }
 

@@ -1,0 +1,12 @@
+fang:
+  node:
+    transport: netty
+    serialize: kryo
+    compress: gzip
+    bindPort: -1
+    loadBalance: random
+  register:
+    address: nacos://localhost:8848
+    username: nacos
+    password: nacos
+    namespace: fc0d7754-f204-40fa-bf4f-4097cb13e2f7

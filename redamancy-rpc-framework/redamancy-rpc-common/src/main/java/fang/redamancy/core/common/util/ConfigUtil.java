@@ -1,16 +1,12 @@
 package fang.redamancy.core.common.util;
 
 import fang.redamancy.core.common.constant.Constants;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcConfig;
 import org.springframework.util.StringUtils;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -61,8 +57,8 @@ public class ConfigUtil {
         return buf == null ? camelName : buf.toString();
     }
 
-    public static URL parseURL(String address, Map<String, String> defaults) {
-        URL url = new URL();
+    public static RpcConfig parseURL(String address, Map<String, String> defaults) {
+        RpcConfig rpcConfig = new RpcConfig();
 
         if (StringUtils.hasText(address)) {
             String urlInfo;
@@ -75,7 +71,7 @@ public class ConfigUtil {
                 urlInfo = addresses[0];
             }
 
-            url = URL.valueOf(urlInfo);
+            rpcConfig = RpcConfig.valueOf(urlInfo);
 
         } else {
             String username = defaults == null ? null : defaults.get("username");
@@ -86,7 +82,7 @@ public class ConfigUtil {
             String protocol = defaults == null ? null : defaults.get("protocol");
 
 
-            url = new URL(protocol, username, password, host, port, path, null);
+            rpcConfig = new RpcConfig(protocol, username, password, host, port, path, null);
         }
 
         Map<String, String> parameters = defaults == null ? null : new HashMap<String, String>(defaults);
@@ -100,9 +96,9 @@ public class ConfigUtil {
             parameters.remove("path");
         }
 
-        url.setParameters(parameters);
+        rpcConfig.setParameters(parameters);
 
-        return url;
+        return rpcConfig;
     }
 
     public static boolean isPrimitive(Class<?> type) {

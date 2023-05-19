@@ -2,7 +2,7 @@ package fang.redamancy.core.config.support.reference;
 
 import fang.redamancy.core.common.annotation.FangReference;
 import fang.redamancy.core.common.extension.ExtensionLoader;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.config.support.AbstractServiceConfig;
 import fang.redamancy.core.proxy.Invoker;
 import fang.redamancy.core.proxy.ProxyFactory;
@@ -66,8 +66,8 @@ public class ReferenceFieldBean<T> extends AbstractServiceConfig implements Fact
 
     @SuppressWarnings({"unchecked"})
     private T createProxy() {
-        URL url = loadNodes();
-        invoker = proxyFactory.refer(interfaceClass, url);
+        RpcConfig rpcConfig = loadNodes();
+        invoker = proxyFactory.refer(interfaceClass, rpcConfig);
 
         return (T) proxyFactory.getProxy(invoker);
     }

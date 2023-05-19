@@ -27,7 +27,6 @@ public class KyroSerializerPool {
             kryo.setReferences(false);
             kryo.register(RpcResponse.class);
             kryo.register(RpcRequest.class);
-
             return kryo;
         }
     };

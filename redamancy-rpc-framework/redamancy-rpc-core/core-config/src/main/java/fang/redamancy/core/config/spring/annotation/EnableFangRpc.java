@@ -19,4 +19,5 @@ import java.lang.annotation.*;
 @FangRpcConfig
 @FangComponentScan
 public @interface EnableFangRpc {
+
 }

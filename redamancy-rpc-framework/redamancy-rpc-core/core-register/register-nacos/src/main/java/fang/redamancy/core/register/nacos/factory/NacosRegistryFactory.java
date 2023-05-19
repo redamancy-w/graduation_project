@@ -4,7 +4,7 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.common.utils.StringUtils;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.register.api.factory.support.AbstractRegisterFactory;
 import fang.redamancy.core.register.api.registration.Register;
 import fang.redamancy.core.register.nacos.register.NacosRegistry;
@@ -24,47 +24,50 @@ import static com.alibaba.nacos.client.naming.utils.UtilAndComs.NACOS_NAMING_LOG
 public class NacosRegistryFactory extends AbstractRegisterFactory {
 
     @Override
-    protected Register buildRegisterClient(URL url) {
-        return new NacosRegistry(createNamingService(url), url);
+    protected Register buildRegisterClient(RpcConfig rpcConfig) {
+        return new NacosRegistry(createNamingService(rpcConfig), rpcConfig);
     }
 
-    private NamingService createNamingService(URL url) {
-        Properties properties = fillProperties(url);
+    private NamingService createNamingService(RpcConfig rpcConfig) {
+        Properties properties = fillProperties(rpcConfig);
 
         NamingService namingService = null;
         try {
             namingService = NacosFactory.createNamingService(properties);
         } catch (NacosException e) {
-            log.error("构建Naming失败,注册中心信息{}", url);
+            log.error("构建Naming失败,注册中心信息{}", rpcConfig);
             throw new RuntimeException(e);
         }
+
+
         return namingService;
     }
 
-    private Properties fillProperties(URL url) {
+    private Properties fillProperties(RpcConfig rpcConfig) {
         Properties properties = new Properties();
 
-        String serverAddr = url.getHost();
+        String serverAddr = rpcConfig.getHost();
         //客户端地址
         properties.put(SERVER_ADDR, serverAddr);
         //命名空间
-        putPropertyIfAbsent(url, properties, NAMESPACE);
+        putPropertyIfAbsent(rpcConfig, properties, NAMESPACE);
         //日志目录
-        putPropertyIfAbsent(url, properties, NACOS_NAMING_LOG_NAME);
+        putPropertyIfAbsent(rpcConfig, properties, NACOS_NAMING_LOG_NAME);
         //连接Nacos Server指定的连接点
-        putPropertyIfAbsent(url, properties, ENDPOINT);
+        putPropertyIfAbsent(rpcConfig, properties, ENDPOINT);
         //鉴权
-        putPropertyIfAbsent(url, properties, USERNAME);
+        putPropertyIfAbsent(rpcConfig, properties, USERNAME);
         //鉴权
-        putPropertyIfAbsent(url, properties, PASSWORD);
+        putPropertyIfAbsent(rpcConfig, properties, PASSWORD);
         //集群名
-        putPropertyIfAbsent(url, properties, CLUSTER_NAME);
+        putPropertyIfAbsent(rpcConfig, properties, CLUSTER_NAME);
 
         return properties;
     }
 
-    private void putPropertyIfAbsent(URL url, Properties properties, String propertyName) {
-        String propertyValue = url.getParameter(propertyName);
+
+    private void putPropertyIfAbsent(RpcConfig rpcConfig, Properties properties, String propertyName) {
+        String propertyValue = rpcConfig.getParameter(propertyName);
         if (StringUtils.isNotEmpty(propertyValue)) {
             properties.setProperty(propertyName, propertyValue);
         }

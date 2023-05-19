@@ -3,7 +3,7 @@ package fang.redamancy.core.proxy.support;
 import fang.redamancy.core.common.constant.Constants;
 import fang.redamancy.core.common.exception.RpcException;
 import fang.redamancy.core.common.extension.ExtensionLoader;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.proxy.Invoker;
 import fang.redamancy.core.proxy.ProxyFactory;
 import fang.redamancy.core.proxy.support.impl.RpcInvoker;
@@ -26,14 +26,14 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
 
 
     @Override
-    public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
-        return new RpcInvoker<>(type, url, getClients(url));
+    public <T> Invoker<T> refer(Class<T> type, RpcConfig rpcConfig) throws RpcException {
+        return new RpcInvoker<>(type, rpcConfig, getClients(rpcConfig));
     }
 
-    private RpcRequestTransport getClients(URL url) {
+    private RpcRequestTransport getClients(RpcConfig rpcConfig) {
         ExtensionLoader<RpcRequestTransport> extensionLoader = ExtensionLoader.getExtensionLoader(RpcRequestTransport.class);
-        if (StringUtils.hasText(url.getParameter(Constants.TRANSPORT))) {
-            return extensionLoader.getExtension(url.getParameter(Constants.TRANSPORT));
+        if (StringUtils.hasText(rpcConfig.getParameter(Constants.TRANSPORT))) {
+            return extensionLoader.getExtension(rpcConfig.getParameter(Constants.TRANSPORT));
         }
         return extensionLoader.getDefaultExtension();
     }

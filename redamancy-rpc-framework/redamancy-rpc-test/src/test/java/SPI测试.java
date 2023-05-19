@@ -1,5 +1,3 @@
-package fang.redamancy.core.remoting;
-
 import fang.redamancy.core.common.extension.ExtensionLoader;
 import fang.redamancy.core.protocol.serialize.Serializer;
 import org.junit.Test;

@@ -1,7 +1,7 @@
 package fang.redamancy.core.remoting.transport.netty.server;
 
 import fang.redamancy.core.common.extension.SPI;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcConfig;
 
 /**
  * @Author redamancy
@@ -11,5 +11,5 @@ import fang.redamancy.core.common.net.support.URL;
 @SPI("netty")
 public interface RpcServer {
 
-    void start(URL config);
+    void start(RpcConfig config);
 }

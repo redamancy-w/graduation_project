@@ -186,9 +186,5 @@ public class ConfigBindingRegistrar implements ImportBeanDefinitionRegistrar, En
         beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
         registerWithGeneratedName(beanDefinition, registry);
 
-        log.info("The BeanPostProcessor bean definition [" + processorClass.getName()
-                + "] for dubbo config bean [name : " + beanName + "] has been registered.");
-
-
     }
 }

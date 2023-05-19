@@ -1,4 +1,4 @@
-package fang.redamancy.core.common.net.support;
+package fang.redamancy.core.common.model;
 
 import fang.redamancy.core.common.constant.Constants;
 import fang.redamancy.core.common.constant.nacosattribute.NacosSupport;
@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Getter
 @Setter
 @NoArgsConstructor
-public final class URL implements Serializable {
+public final class RpcConfig implements Serializable {
 
 
     /**
@@ -87,7 +87,6 @@ public final class URL implements Serializable {
                 .append(StringUtils.hasText(serviceName) ? serviceName : getParameter(Constants.INTERFACE_KEY))
                 .append(":")
                 .append(getParameter(Constants.VERSION_KEY, Constants.VERSION_DEFAULT));
-
         return String.valueOf(sb);
     }
 
@@ -141,7 +140,7 @@ public final class URL implements Serializable {
     }
 
 
-    public static URL valueOf(String url) {
+    public static RpcConfig valueOf(String url) {
         if (url == null || (url = url.trim()).length() == 0) {
             throw new IllegalArgumentException("url == null");
         }
@@ -185,10 +184,10 @@ public final class URL implements Serializable {
         }
 
 
-        return new URL(protocol, username, password, host, port, path, null);
+        return new RpcConfig(protocol, username, password, host, port, path, null);
     }
 
-    public URL(String protocol, String host, int port, Map<String, String> parameters) {
+    public RpcConfig(String protocol, String host, int port, Map<String, String> parameters) {
         this(protocol, null, null, host, port, null, parameters);
     }
 
@@ -196,7 +195,7 @@ public final class URL implements Serializable {
         this.parameters.put(key, value);
     }
 
-    public URL(String protocol, String username, String password, String host, int port, String path, Map<String, String> parameters) {
+    public RpcConfig(String protocol, String username, String password, String host, int port, String path, Map<String, String> parameters) {
 
         boolean ok = (username == null || username.length() == 0)
                 && password != null && password.length() > 0;

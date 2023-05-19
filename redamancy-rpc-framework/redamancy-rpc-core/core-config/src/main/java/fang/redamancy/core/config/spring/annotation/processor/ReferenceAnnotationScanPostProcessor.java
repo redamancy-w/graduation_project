@@ -130,11 +130,8 @@ public class ReferenceAnnotationScanPostProcessor extends InstantiationAwareBean
                     elements.add(new ReferenceFieldElement(field, reference));
                 }
             }
-
         });
-
         return elements;
-
     }
 
 

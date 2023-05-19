@@ -1,8 +1,8 @@
 package fang.redamancy.loadbalance;
 
 import cn.hutool.core.collection.CollectionUtil;
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.common.model.RpcRequest;
-import fang.redamancy.core.common.net.support.URL;
 
 import java.util.List;
 
@@ -14,17 +14,17 @@ import java.util.List;
 public abstract class AbstractLoadBalance implements LoadBalance {
 
     @Override
-    public URL selectServiceAddress(List<URL> serviceUrlList, RpcRequest rpcRequest) {
-        if (CollectionUtil.isEmpty(serviceUrlList)) {
+    public RpcConfig selectServiceAddress(List<RpcConfig> serviceRpcConfigList, RpcRequest rpcRequest) {
+        if (CollectionUtil.isEmpty(serviceRpcConfigList)) {
             return null;
         }
-        if (serviceUrlList.size() == 1) {
-            return serviceUrlList.get(0);
+        if (serviceRpcConfigList.size() == 1) {
+            return serviceRpcConfigList.get(0);
         }
 
-        return doSelect(serviceUrlList, rpcRequest);
+        return doSelect(serviceRpcConfigList, rpcRequest);
     }
 
     //查找算法实现
-    protected abstract URL doSelect(List<URL> serviceAddresses, RpcRequest rpcRequest);
+    protected abstract RpcConfig doSelect(List<RpcConfig> serviceAddresses, RpcRequest rpcRequest);
 }

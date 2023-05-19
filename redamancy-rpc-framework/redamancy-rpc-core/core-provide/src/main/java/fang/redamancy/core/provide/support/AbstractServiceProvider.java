@@ -4,7 +4,7 @@ import fang.redamancy.core.common.constant.Constants;
 import fang.redamancy.core.common.enums.RpcErrorMessageEnum;
 import fang.redamancy.core.common.exception.RpcException;
 import fang.redamancy.core.common.extension.ExtensionLoader;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.provide.ServiceProvider;
 import fang.redamancy.core.register.api.factory.RegisterFactory;
 import fang.redamancy.core.register.api.registration.Register;
@@ -30,7 +30,7 @@ public abstract class AbstractServiceProvider implements ServiceProvider {
      */
     protected Register register;
 
-    private static final Map<String, URL> interfaceToUrl = new ConcurrentHashMap<>();
+    private static final Map<String, RpcConfig> interfaceToUrl = new ConcurrentHashMap<>();
     private static final Map<String, Class<?>> interfaceMap = new ConcurrentHashMap<>();
 
     /**
@@ -41,32 +41,37 @@ public abstract class AbstractServiceProvider implements ServiceProvider {
     public AbstractServiceProvider() {
     }
 
-    public AbstractServiceProvider(URL url) {
-        String protocol = getProtocol(url);
+    public AbstractServiceProvider(RpcConfig rpcConfig) {
+        String protocol = getProtocol(rpcConfig);
         registerFactory = ExtensionLoader.getExtension(RegisterFactory.class, protocol);
-        register = registerFactory.getRegistryClient(url);
+        register = registerFactory.getRegistryClient(rpcConfig);
     }
 
-    protected String getProtocol(URL url) {
-        return StringUtils.hasText(url.getProtocol()) ? Constants.DEFAULT_PROTOCOL : url.getProtocol();
+    protected String getProtocol(RpcConfig rpcConfig) {
+        return StringUtils.hasText(rpcConfig.getProtocol()) ? Constants.DEFAULT_PROTOCOL : rpcConfig.getProtocol();
     }
 
 
     @Override
-    public void addService(URL url, Class<?> interfaceClazz, Object server) {
-        if (Objects.isNull(url)) {
+    public void addService(RpcConfig rpcConfig, Class<?> interfaceClazz, Object server) {
+        if (Objects.isNull(rpcConfig)) {
             throw new IllegalArgumentException("url 为空");
         }
-        String interfaceKey = url.getRpcServiceKey(interfaceClazz.getName());
-        interfaceToUrl.put(interfaceKey, url);
+
+        String interfaceKey = rpcConfig.getRpcServiceKey(interfaceClazz.getName());
+
+        interfaceToUrl.put(interfaceKey, rpcConfig);
+
         interfaceMap.put(interfaceKey, interfaceClazz);
+
         serviceMap.put(interfaceKey, server);
 
-        doAddService(url);
+        doAddService(rpcConfig);
+
     }
 
 
-    protected abstract void doAddService(URL url);
+    protected abstract void doAddService(RpcConfig rpcConfig);
 
     @Override
     public Object getService(String serverName) {
@@ -81,8 +86,8 @@ public abstract class AbstractServiceProvider implements ServiceProvider {
     }
 
     @Override
-    public void publishService(URL url, Class<?> interfaceClazz, Object server) {
-        addService(url, interfaceClazz, server);
+    public void publishService(RpcConfig rpcConfig, Class<?> interfaceClazz, Object server) {
+        addService(rpcConfig, interfaceClazz, server);
     }
 
 }

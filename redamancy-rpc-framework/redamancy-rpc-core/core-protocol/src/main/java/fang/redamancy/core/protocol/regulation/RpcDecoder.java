@@ -22,20 +22,27 @@ import java.util.Arrays;
  * @Author redamancy
  * @Date 2022/11/17 16:54
  * @Version 1.0
- * *   0     1     2     3     4        5     6     7     8         9        10      11     12  13  14   15
- * *   +-----+-----+-----+-----+----+----+---+-----+-----+-----------+-------+-------+--------------------------|
- * *   |   magic   code        |     full length        | messageType| codec|compress|    RequestId             |
- * *   +-----------------------+------------------------+------------+-----------+-----------+-----------------+
- * *   |                                                                                                       |
- * *   |                                         body                                                          |
- * *   |                                                                                                       |
- * *   |                                        ... ...                                                        |
- * *   +-------------------------------------------------------------------------------------------------------+
- * * 4B  magic code（魔法数) 4B full length（消息长度）    1B messageType（消息类型）
- * * 1B codec（序列化类型）   1B compress（压缩类型）       4B  requestId（请求的Id）
- * * body（object类型数据）
+ * *  0  1  2  3 4   5  6  7  8    9             10      11         12  13 14   15
+ * * ┌───────────┬───┬─────────────┬──────────────┬───────┬─────────┬────────────┐
+ * * │magic code │ -V│  full length│  messageType │ codec │ compress│  requestId │
+ * * │           │   │             │              │       │         │            │
+ * * ├───────────┴───┴─────────────┴──────────────┴───────┴─────────┴────────────┤
+ * * │                                                                           │
+ * * │                                                                           │
+ * * │                                                                           │
+ * * │                    body ......                                            │
+ * * │                                                                           │
+ * * │                                                                           │
+ * * │                                                                           │
+ * * └───────────────────────────────────────────────────────────────────────────┘
+ * <p>
+ * * 4B  magic code（魔法数) 1B -V (应用版本)        4B full length（消息长度）
+ * 1B messageType（消息类型） 1B codec（序列化类型）   1B compress（压缩类型）
+ * 4B  requestId（请求的Id）
+ * body（object类型数据）
  * @see <a href="https://zhuanlan.zhihu.com/p/95621344">LengthFieldBasedFrameDecoder解码器</a>
  */
+
 @Slf4j
 public class RpcDecoder extends LengthFieldBasedFrameDecoder {
 
@@ -45,13 +52,23 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
     }
 
     /**
-     * lengthFieldOffset: magic code 的长度是4
+     * lengthFieldOffset: magic code + version 的长度是5
      * lengthFieldLength: full length 是4，所以值是4
-     * lengthAdjustment: fulllength 是4，macgic code是4，full length 是数据全长，所以，还需要读 full lenfth 的值 - （full length + macgic code），所以是-8
+     * lengthAdjustment: fulllength 是4，macgic code是4，full length 是数据全长，所以，还需要读 full lenfth 的值 - （full length + macgic code），所以是-9
      * initialBytesToStrip: 因为是手动检测的，所以不需要剥离
+     * <p>
+     * 1.从消息开头偏移lengthFieldOffset长度, 到达A位置
+     * <p>
+     * 2.再从A位置读取lengthFieldLength长度, 到达B位置, 内容是d
+     * <p>
+     * 3.再从B位置读取(d+lengthAdjustment)长度, 达到D位置
+     * <p>
+     * 4.从消息开头跳过initialBytesToStrip长度到达C位置
+     * <p>
+     * 5.将C位置-D位置之间的内容传送给接下来的处理器进行后续处理
      */
     public RpcDecoder() {
-        this(RpcConstants.MAX_FRAME_LENGTH, 4, 4, -8, 0);
+        this(RpcConstants.MAX_FRAME_LENGTH, 5, 4, -9, 0);
     }
 
     @Override
@@ -77,6 +94,7 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
     private Object decodeFrame(ByteBuf in) {
         // 字节流是不重置的，所以要按照规定顺序读取
         checkMagicNumber(in);
+        checkVersion(in);
         int fullLength = in.readInt();
         // 创建RpcMessage
         byte messageType = in.readByte();
@@ -108,6 +126,14 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
         return rpcMessage;
     }
 
+    private void checkVersion(ByteBuf in) {
+        //比较双方的框架版本
+        byte version = in.readByte();
+        if (version != RpcConstants.RPC_VERSION) {
+            throw new RuntimeException("version isn't compatible" + version);
+        }
+    }
+
     /**
      * 处理body体
      *
@@ -127,7 +153,7 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
 
         //反序列化对象
         String codecName = SerializationTypeEnum.getName(rpcMessage.getCodec());
-        log.info("codec name: [{}] ", codecName);
+        log.debug("codec name: [{}] ", codecName);
         Serializer serializer = ExtensionLoader.getExtension(Serializer.class, codecName);
 
         if (rpcMessage.getMessageType() == RpcConstants.REQUEST_TYPE) {
@@ -136,7 +162,6 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
             rpcMessage.setData(tmpValue);
 
         } else {
-
             RpcResponse<?> tmpValue = serializer.deserialize(bs, RpcResponse.class);
             rpcMessage.setData(tmpValue);
         }

@@ -1,7 +1,7 @@
 package fang.redamancy.core.provide;
 
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.common.model.RpcRequest;
-import fang.redamancy.core.common.net.support.URL;
 
 /**
  * @Author redamancy
@@ -13,9 +13,9 @@ public interface ServiceProvider {
     /**
      * 向注册中心添加服务
      *
-     * @param url rpc service related attributes
+     * @param rpcConfig rpc service related attributes
      */
-    void addService(URL url, Class<?> interfaceClazz, Object server);
+    void addService(RpcConfig rpcConfig, Class<?> interfaceClazz, Object server);
 
     /**
      * 得到服务
@@ -28,9 +28,9 @@ public interface ServiceProvider {
     /**
      * 同addService
      *
-     * @param url rpc service related attributes
+     * @param rpcConfig rpc service related attributes
      */
-    void publishService(URL url, Class<?> interfaceClazz, Object server);
+    void publishService(RpcConfig rpcConfig, Class<?> interfaceClazz, Object server);
 
-    URL getAddress(URL url, RpcRequest request);
+    RpcConfig getAddress(RpcConfig rpcConfig, RpcRequest request);
 }

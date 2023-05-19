@@ -11,6 +11,7 @@
 
     <groupId>fang.redamancy.loadbalance</groupId>
     <artifactId>core-loadbalance</artifactId>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

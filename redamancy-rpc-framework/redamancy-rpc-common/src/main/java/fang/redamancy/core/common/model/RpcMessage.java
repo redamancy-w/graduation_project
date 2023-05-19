@@ -1,11 +1,10 @@
 package fang.redamancy.core.common.model;
 
 import lombok.*;
-import lombok.experimental.Accessors;
-import org.checkerframework.checker.units.qual.Acceleration;
 
 /**
  * 用于rpc协议传输的数据载体
+ *
  * @Author redamancy
  * @Date 2022/11/24 21:15
  * @Version 1.0
@@ -34,6 +33,7 @@ public class RpcMessage {
      * request id
      */
     private int requestId;
+
     /**
      * request body
      */

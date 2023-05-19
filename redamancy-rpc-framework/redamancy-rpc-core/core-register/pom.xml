@@ -12,6 +12,7 @@
 
     <artifactId>core-register</artifactId>
     <packaging>pom</packaging>
+
     <modules>
         <module>register-api</module>
         <module>register-nacos</module>

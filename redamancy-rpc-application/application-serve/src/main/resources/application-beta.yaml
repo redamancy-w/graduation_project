@@ -1,0 +1,11 @@
+fang:
+  node:
+    transport: netty
+    serialize: kryo
+    compress: gzip
+    bindPort: 53242
+    loadBalance: random
+  register:
+    address: nacos://nacos:8848
+    username: nacos
+    password: nacos

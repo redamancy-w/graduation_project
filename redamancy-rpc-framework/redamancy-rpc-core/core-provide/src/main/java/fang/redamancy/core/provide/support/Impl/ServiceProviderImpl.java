@@ -2,8 +2,8 @@ package fang.redamancy.core.provide.support.Impl;
 
 import fang.redamancy.core.common.constant.Constants;
 import fang.redamancy.core.common.extension.ExtensionLoader;
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.common.model.RpcRequest;
-import fang.redamancy.core.common.net.support.URL;
 import fang.redamancy.core.provide.support.AbstractServiceProvider;
 import fang.redamancy.loadbalance.LoadBalance;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +20,8 @@ public class ServiceProviderImpl extends AbstractServiceProvider {
 
     private LoadBalance loadBalance;
 
-    public ServiceProviderImpl(URL url) {
-        super(url);
+    public ServiceProviderImpl(RpcConfig rpcConfig) {
+        super(rpcConfig);
     }
 
     public ServiceProviderImpl() {
@@ -29,20 +29,21 @@ public class ServiceProviderImpl extends AbstractServiceProvider {
     }
 
     @Override
-    protected void doAddService(URL url) {
+    protected void doAddService(RpcConfig rpcConfig) {
         try {
-            register.register(url);
+            register.register(rpcConfig);
         } catch (RuntimeException runtimeException) {
-            log.error("注册失败：" + url);
+            log.error("注册失败：" + rpcConfig);
         }
     }
 
     @Override
-    public URL getAddress(URL url, RpcRequest request) {
+    public RpcConfig getAddress(RpcConfig rpcConfig, RpcRequest request) {
 
-        List<URL> urls = register.discoverRegister(url.getRpcServiceKey(null));
-        loadBalance = ExtensionLoader.getExtension(LoadBalance.class, url.getParameter(Constants.LOAD_BALANCE, Constants.LOAD_BALANCE_DEFAULT));
-        return loadBalance.selectServiceAddress(urls, request);
+        List<RpcConfig> rpcConfigs = register.discoverRegister(rpcConfig.getRpcServiceKey(null));
+        loadBalance = ExtensionLoader.getExtension(LoadBalance.class, rpcConfig.getParameter(Constants.LOAD_BALANCE, Constants.LOAD_BALANCE_DEFAULT));
+
+        return loadBalance.selectServiceAddress(rpcConfigs, request);
 
     }
 }

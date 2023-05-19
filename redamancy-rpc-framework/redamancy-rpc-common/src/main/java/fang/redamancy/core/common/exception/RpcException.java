@@ -18,8 +18,9 @@ public final class RpcException extends RuntimeException {
     private static final long serialVersionUID = 7815426752583648734L;
     private int code; // RpcException cannot be extended, use error code for exception type to keep compatibility
 
-    public RpcException() {
-        super();
+
+    public RpcException(RpcErrorMessageEnum rpcErrorMessageEnum, String detail) {
+        super(rpcErrorMessageEnum.getMessage() + ":" + detail);
     }
 
     public RpcException(RpcErrorMessageEnum rpcErrorMessageEnum) {
@@ -84,5 +85,10 @@ public final class RpcException extends RuntimeException {
 
     public boolean isSerialization() {
         return code == SERIALIZATION_EXCEPTION;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

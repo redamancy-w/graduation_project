@@ -1,7 +1,5 @@
 package fang.redamancy.core.config.spring.annotation.config;
 
-import fang.redamancy.core.config.spring.annotation.config.ConfigBindingRegistrar;
-import fang.redamancy.core.config.spring.annotation.config.ConfigBindings;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.EnvironmentAware;
@@ -31,7 +29,7 @@ public class ConfigBindingsRegistrar implements ImportBeanDefinitionRegistrar, E
                 importingClassMetadata.getAnnotationAttributes(ConfigBindings.class.getName()));
 
         AnnotationAttributes[] annotationAttributes = attributes.getAnnotationArray("value");
-        ConfigBindingRegistrar registrar            = new ConfigBindingRegistrar();
+        ConfigBindingRegistrar registrar = new ConfigBindingRegistrar();
 
         registrar.setEnvironment(environment);
         for (AnnotationAttributes element : annotationAttributes) {

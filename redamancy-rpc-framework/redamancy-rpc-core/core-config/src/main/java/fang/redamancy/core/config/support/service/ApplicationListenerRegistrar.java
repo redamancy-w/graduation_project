@@ -4,7 +4,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import fang.redamancy.core.common.annotation.FangService;
 import fang.redamancy.core.common.constant.Constants;
 import fang.redamancy.core.common.extension.ExtensionLoader;
-import fang.redamancy.core.common.net.support.URL;
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.common.util.RuntimeUtil;
 import fang.redamancy.core.config.support.AbstractServiceConfig;
 import fang.redamancy.core.provide.ServiceProvider;
@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ApplicationListenerRegistrar<T> extends AbstractServiceConfig implements InitializingBean, ApplicationListener<ContextRefreshedEvent>, BeanNameAware {
 
-    private Boolean isOpen = false;
+    private static volatile Boolean isOpen = false;
 
     private final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(RuntimeUtil.cpus(),
             new ThreadFactoryBuilder()
@@ -117,26 +117,28 @@ public class ApplicationListenerRegistrar<T> extends AbstractServiceConfig imple
 
     private void doExportUrls() {
 
-        URL registryURL = loadNodes();
-        openServe(registryURL);
+        RpcConfig registryRpcConfig = loadNodes();
+        if (!isOpen) {
+            openServe(registryRpcConfig);
+        }
         //TODO 获得本地ip，和host；或者根据配置文件中的ip后进行注册，
-        if (!Objects.isNull(registryURL)) {
-            ServiceProvider provider = new ServiceProviderImpl(registryURL);
+        if (!Objects.isNull(registryRpcConfig)) {
+            ServiceProvider provider = new ServiceProviderImpl(registryRpcConfig);
             scheduledExecutorService.execute(() -> {
-                provider.publishService(registryURL, interfaceClass, ref);
+                provider.publishService(registryRpcConfig, interfaceClass, ref);
             });
         }
 
     }
 
-    private void openServe(URL config) {
+    private void openServe(RpcConfig config) {
         Boolean isServe = Boolean.valueOf(config.getParameter(Constants.IS_SERVER, Boolean.FALSE.toString()));
         if (!isServe) {
             doOpen(config);
         }
     }
 
-    private void doOpen(URL config) {
+    private void doOpen(RpcConfig config) {
         this.isOpen = true;
         RpcServer nettyRpcServer = ExtensionLoader
                 .getExtension(RpcServer.class, config.getParameter(Constants.TRANSPORT, Constants.TRANSPORT_DEFAULT));

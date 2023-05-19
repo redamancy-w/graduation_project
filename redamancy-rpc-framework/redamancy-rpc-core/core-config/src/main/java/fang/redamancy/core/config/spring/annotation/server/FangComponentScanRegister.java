@@ -47,7 +47,6 @@ public class FangComponentScanRegister implements ImportBeanDefinitionRegistrar,
         registerReferenceAnnotationBeanPostProcessor(registry);
     }
 
-
     private void registerReferenceAnnotationBeanPostProcessor(BeanDefinitionRegistry registry) {
 
         if (!registry.containsBeanDefinition(ReferenceAnnotationScanPostProcessor.BEAN_NAME)) {

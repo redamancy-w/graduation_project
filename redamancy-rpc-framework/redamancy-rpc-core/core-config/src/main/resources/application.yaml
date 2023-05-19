@@ -4,7 +4,10 @@ fang:
     username: nacos
     password: nacos
   register:
+    serialize: kryo
+    compress: gzip
     transport: netty
     bindPort: 53242
+    loadBalance: random;
 server:
   port: 8084

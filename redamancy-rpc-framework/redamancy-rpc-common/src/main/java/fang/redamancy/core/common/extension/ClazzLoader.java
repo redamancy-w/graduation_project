@@ -6,11 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -35,10 +34,15 @@ public class ClazzLoader {
         }
 
         try {
-            Enumeration<URL> urls;
-            ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
 
-            urls = classLoader.getResources(SERVICES_DIRECTORY);
+            Enumeration<URL> urls;
+            ClassLoader classLoader = ClazzLoader.class.getClassLoader();
+
+            if (classLoader != null) {
+                urls = classLoader.getResources(SERVICES_DIRECTORY);
+            } else {
+                urls = ClassLoader.getSystemResources(SERVICES_DIRECTORY);
+            }
 
             if (urls != null) {
                 while (urls.hasMoreElements()) {
@@ -53,15 +57,17 @@ public class ClazzLoader {
 
     private void loadResource(Map<String, Class<?>> extensionClasses, ClassLoader classLoader, URL resourceUrl, String className) {
 
-        try (InputStream inputStream = Files.newInputStream(Paths.get(resourceUrl.getFile()))) {
-            Representer representer = new Representer();
-            representer.getPropertyUtils().setSkipMissingProperties(true);
-            Yaml yaml = new Yaml(representer);
-
-            ExtensionYaml extensionYaml = yaml.loadAs(inputStream, ExtensionYaml.class);
+        try {
+            ExtensionYaml extensionYaml;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(resourceUrl.openStream(), "utf-8"))) {
+                Representer representer = new Representer();
+                representer.getPropertyUtils().setSkipMissingProperties(true);
+                Yaml yaml = new Yaml(representer);
+                extensionYaml = yaml.loadAs(reader, ExtensionYaml.class);
+            }
 
             Map<String, String> classMap = extensionYaml.getClassesMap(className);
-            
+
             for (Entry<String, String> entry : classMap.entrySet()) {
                 String name = entry.getKey();
                 String clazzName = entry.getValue();

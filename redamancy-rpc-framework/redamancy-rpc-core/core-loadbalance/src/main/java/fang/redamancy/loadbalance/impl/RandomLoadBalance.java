@@ -1,7 +1,7 @@
 package fang.redamancy.loadbalance.impl;
 
+import fang.redamancy.core.common.model.RpcConfig;
 import fang.redamancy.core.common.model.RpcRequest;
-import fang.redamancy.core.common.net.support.URL;
 import fang.redamancy.loadbalance.AbstractLoadBalance;
 
 import java.security.NoSuchAlgorithmException;
@@ -20,7 +20,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
     private Random random;
 
     @Override
-    protected URL doSelect(List<URL> serviceAddresses, RpcRequest rpcRequest) {
+    protected RpcConfig doSelect(List<RpcConfig> serviceAddresses, RpcRequest rpcRequest) {
         try {
             random = SecureRandom.getInstanceStrong();
         } catch (NoSuchAlgorithmException e) {

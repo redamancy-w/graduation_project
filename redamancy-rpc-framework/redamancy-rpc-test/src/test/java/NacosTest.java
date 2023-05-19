@@ -31,5 +31,4 @@ public class NacosTest {
         RegisterFactory registerFactory = ExtensionLoader.getExtension(RegisterFactory.class, "nacos");
         System.out.println("sss");
     }
-
 }

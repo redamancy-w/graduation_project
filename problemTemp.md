@@ -51,3 +51,34 @@ endpoint
 # 6.InjectionMetadata
 
 大概知道了所谓的InjectionMetadata究竟是个什么。它存储了某个类，以及这个类里需要被依赖注入的element(自定义)
+
+
+
+
+
+![image-20230427133510499](https://cdn.jsdelivr.net/gh/redamancy-w/blogImages@main/imgimage-20230427133510499.png)
+
+## 关于服务端异常处理
+
+在序列化exception和Throwable类的时候,kryo无法成功序列化
+
+- 可能是两个类中的clone方法存在递归调用,或者其他
+
+报错信息
+
+> *** java.lang.instrument ASSERTION FAILED ***: "!errorOutstanding" with message transform method call failed at JPLISAgent.c line: 844
+
+### 解决方案:
+
+将在服务端将调用的方法未处理抛出的异常捕获,将异常中的信息存入rpcmessage中,在客户端收到结果后进行判断并抛出异常,
+
+捕获代码块
+
+![image-20230427172117327](https://cdn.jsdelivr.net/gh/redamancy-w/blogImages@main/imgimage-20230427172117327.png)
+
+![image-20230427172242176](https://cdn.jsdelivr.net/gh/redamancy-w/blogImages@main/imgimage-20230427172242176.png)
+
+处理代码块
+
+![image-20230427172209959](https://cdn.jsdelivr.net/gh/redamancy-w/blogImages@main/imgimage-20230427172209959.png)
+

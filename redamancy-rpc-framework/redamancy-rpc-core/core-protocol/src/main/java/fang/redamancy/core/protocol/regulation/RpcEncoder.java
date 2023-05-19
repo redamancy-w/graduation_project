@@ -8,6 +8,7 @@ import fang.redamancy.core.common.model.RpcMessage;
 import fang.redamancy.core.protocol.compress.Compress;
 import fang.redamancy.core.protocol.serialize.Serializer;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @Version 1.0
  */
 @Slf4j
+@ChannelHandler.Sharable
 public class RpcEncoder extends MessageToByteEncoder<RpcMessage> {
 
     /**
@@ -33,6 +35,8 @@ public class RpcEncoder extends MessageToByteEncoder<RpcMessage> {
     protected void encode(ChannelHandlerContext channelHandlerContext, RpcMessage rpcMessage, ByteBuf out) {
         try {
             out.writeBytes(RpcConstants.MAGIC_NUMBER);
+            out.writeByte(RpcConstants.RPC_VERSION);
+
             out.markWriterIndex();
             //预留4的长度后续填入 full length
             out.writerIndex(out.writerIndex() + 4);
@@ -61,7 +65,7 @@ public class RpcEncoder extends MessageToByteEncoder<RpcMessage> {
 
             //降内容序列化
             String codecName = SerializationTypeEnum.getName(rpcMessage.getCodec());
-            log.info("codec name: [{}] ", codecName);
+            log.debug("codec name: [{}] ", codecName);
 
             Serializer serializer = ExtensionLoader.getExtension(Serializer.class, codecName);
 
@@ -69,7 +73,7 @@ public class RpcEncoder extends MessageToByteEncoder<RpcMessage> {
 
             //压缩内容
             String compressName = CompressTypeEnum.getName(rpcMessage.getCompress());
-            log.info("compress name: [{}]", compressName);
+            log.debug("compress name: [{}]", compressName);
             Compress compress = ExtensionLoader.getExtension(Compress.class, compressName);
 
             bodyBytes = compress.compress(bodyBytes);
@@ -84,5 +88,4 @@ public class RpcEncoder extends MessageToByteEncoder<RpcMessage> {
         out.writeInt(fullLength);
         out.writerIndex(writeIndex);
     }
-
 }

@@ -1,7 +1,7 @@
 package fang.redamancy.core.config.spring.annotation.config;
 
 import fang.redamancy.core.config.support.model.FangNodeConfig;
-import fang.redamancy.core.config.support.model.FangRegistryConfig;
+import fang.redamancy.core.config.support.model.FangRegisterConfig;
 
 /**
  * @Author redamancy
@@ -10,8 +10,8 @@ import fang.redamancy.core.config.support.model.FangRegistryConfig;
  */
 public class FangConfigConfiguration {
     @ConfigBindings({
-            @ConfigBinding(prefix = "fang.node", type = FangNodeConfig.class),
-            @ConfigBinding(prefix = "fang.register", type = FangRegistryConfig.class)
+            @ConfigBinding(prefix = "fang.register", type = FangRegisterConfig.class),
+            @ConfigBinding(prefix = "fang.node", type = FangNodeConfig.class)
     })
     public static class Single {
     }

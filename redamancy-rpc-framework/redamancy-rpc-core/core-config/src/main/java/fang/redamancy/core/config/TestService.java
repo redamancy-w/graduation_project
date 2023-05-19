@@ -15,7 +15,7 @@ public class TestService {
     private TestInterface test;
 
     public String test() {
-        return test.test();
+        return "壮举:成功" + test.test();
     }
 
 }

@@ -79,9 +79,6 @@ public class NettyRpcClientHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    /**
-     * Called when an exception occurs in processing a client message
-     */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         log.error("client catch exception：", cause);

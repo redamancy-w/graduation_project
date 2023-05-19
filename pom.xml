@@ -9,9 +9,9 @@
     <version>0.0.1-SNAPSHOT</version>
     <modules>
         <module>redamancy-rpc-framework</module>
-        <module>redamancy-rpc-framework/redamancy-rpc-common</module>
-        <module>redamancy-rpc-framework/redamancy-rpc-core</module>
+        <module>redamancy-rpc-application</module>
     </modules>
+
     <name>graduationProject</name>
     <description>graduationProject</description>
 
