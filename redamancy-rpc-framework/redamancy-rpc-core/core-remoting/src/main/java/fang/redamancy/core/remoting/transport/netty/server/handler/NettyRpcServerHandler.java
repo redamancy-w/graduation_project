@@ -18,6 +18,9 @@ import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -31,6 +34,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 public class NettyRpcServerHandler extends ChannelInboundHandlerAdapter {
     private final RpcRequestHandler rpcRequestHandler;
 
+    private static final Map<String, Integer> visitT = new ConcurrentHashMap<>();
     private final ScheduledExecutorService scheduledExecutorService;
 
 
@@ -48,10 +52,11 @@ public class NettyRpcServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
 
         scheduledExecutorService.execute(() -> {
-
+            RpcRequest rpcRequest = null;
             try {
+                long stime = System.currentTimeMillis();
                 if (msg instanceof RpcMessage) {
-                    log.info("server receive msg: [{}] ", msg);
+                    log.debug("server receive msg: [{}] ", msg);
                     byte messageType = ((RpcMessage) msg).getMessageType();
                     RpcMessage rpcMessage = new RpcMessage();
                     rpcMessage.setCodec(((RpcMessage) msg).getCodec());
@@ -60,7 +65,7 @@ public class NettyRpcServerHandler extends ChannelInboundHandlerAdapter {
                         rpcMessage.setMessageType(RpcConstants.HEARTBEAT_RESPONSE_TYPE);
                         rpcMessage.setData(RpcConstants.PONG);
                     } else {
-                        RpcRequest rpcRequest = (RpcRequest) ((RpcMessage) msg).getData();
+                        rpcRequest = (RpcRequest) ((RpcMessage) msg).getData();
 
                         Object result = rpcRequestHandler.handle(rpcRequest);
                         log.debug(String.format("server get result: %s", result.toString()));
@@ -75,6 +80,13 @@ public class NettyRpcServerHandler extends ChannelInboundHandlerAdapter {
                             log.error("invoker exception");
                         }
                     }
+
+                    long etime = System.currentTimeMillis();
+                    InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
+                    visitT.put(rpcRequest.getRpcServiceName(), visitT.getOrDefault(rpcRequest.getRpcServiceName(), 0) + 1);
+
+                    log.info(insocket.getAddress() + "访问了该服务,请求数据:[{}]", msg + "耗时:" + (etime - stime) + "毫秒" + "该服务被访问了" + visitT.get(rpcRequest.getRpcServiceName()) + "次");
+
                     ctx.writeAndFlush(rpcMessage).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
                 }
             } finally {

@@ -28,7 +28,6 @@ public class HelloServiceImpl implements HelloService {
         throw new RuntimeException("异常处理测试");
     }
 
-
     @Override
     public String timeoutTest() {
 

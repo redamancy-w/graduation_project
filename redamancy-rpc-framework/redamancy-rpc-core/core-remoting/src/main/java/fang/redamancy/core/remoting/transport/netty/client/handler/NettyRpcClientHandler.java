@@ -41,7 +41,7 @@ public class NettyRpcClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         try {
-            log.info("client receive msg: [{}]", msg);
+            log.debug("client receive msg: [{}]", msg);
             if (msg instanceof RpcMessage) {
                 RpcMessage tmp = (RpcMessage) msg;
                 byte messageType = tmp.getMessageType();

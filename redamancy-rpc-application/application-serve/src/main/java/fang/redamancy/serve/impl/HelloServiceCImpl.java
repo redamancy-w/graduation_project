@@ -43,11 +43,9 @@ public class HelloServiceCImpl implements HelloService {
         return "超时测试成功";
     }
 
-
     @Override
     public String loadBalancing(String la) {
         return System.getProperty("configurePath");
     }
-
 
 }

@@ -54,8 +54,6 @@ public class NettyRpcClient implements RpcRequestTransport {
     @Override
     @SneakyThrows
     public RpcResponse<Object> request(RpcInvocation invocation, int timeout, RpcConfig rpcConfig) {
-
-
         RpcRequest rpcRequest = RpcRequest.builder().methodName(invocation.getMethodName())
                 .parameters(invocation.getArgs())
                 .interfaceName(invocation.getMethod().getDeclaringClass().getName())
@@ -116,7 +114,7 @@ public class NettyRpcClient implements RpcRequestTransport {
             channel.writeAndFlush(rpcMessage).addListener((ChannelFutureListener) future -> {
 
                 if (future.isSuccess()) {
-                    log.info("client send message: [{}]", rpcMessage);
+                    log.debug("client send message: [{}]", rpcMessage);
                 } else {
                     future.channel().close();
                     resultFuture.completeExceptionally(future.cause());

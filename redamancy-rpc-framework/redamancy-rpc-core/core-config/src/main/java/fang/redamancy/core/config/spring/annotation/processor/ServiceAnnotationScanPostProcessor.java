@@ -32,12 +32,14 @@ import static org.springframework.core.annotation.AnnotationUtils.findAnnotation
 import static org.springframework.util.ClassUtils.resolveClassName;
 
 /**
- * 处理Service注解的后置处理器
+ * <p>
+ * 动态注册Bean到Spring容器
  *
  * @Author redamancy
  * @Date 2023/2/27 17:09
  * @Version 1.0
  */
+
 @Slf4j
 public class ServiceAnnotationScanPostProcessor implements BeanDefinitionRegistryPostProcessor, EnvironmentAware,
         ResourceLoaderAware, BeanClassLoaderAware, Ordered {

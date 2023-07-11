@@ -147,7 +147,7 @@ public class RpcDecoder extends LengthFieldBasedFrameDecoder {
 
         //gzip解压对象
         String compressName = CompressTypeEnum.getName(rpcMessage.getCompress());
-        log.info("compress name : [{}]", compressName);
+        log.debug("compress name : [{}]", compressName);
         Compress compress = ExtensionLoader.getExtension(Compress.class, compressName);
         bs = compress.decompress(bs);
 
